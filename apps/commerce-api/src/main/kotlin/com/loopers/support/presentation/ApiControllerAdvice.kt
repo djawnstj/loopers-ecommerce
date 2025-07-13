@@ -1,4 +1,4 @@
-package com.loopers.interfaces.api
+package com.loopers.support.presentation
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
