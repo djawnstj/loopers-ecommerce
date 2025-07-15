@@ -1,0 +1,49 @@
+package com.loopers.user.domain.vo
+
+import com.loopers.support.error.CoreException
+import com.loopers.support.error.ErrorType
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+
+class EmailTest {
+    @Nested
+    inner class `이메일 값객체를 생성할 때` {
+
+        @ParameterizedTest
+        @ValueSource(
+            strings = [
+                "email",
+                "email@",
+                "email@domain",
+                "email@domain.",
+                "email@.",
+                "email@.com",
+                "domain.com",
+                "@domain.com",
+            ],
+        )
+        fun `이메일 형식이 올바르지 않다면 예외를 던진다`(email: String) {
+            // when then
+            assertThatThrownBy { Email(email) }
+                .isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(ErrorType.INVALID_USER_EMAIL_FORMAT, "이메일 형식이 올바르지 않습니다.")
+        }
+
+        @Test
+        fun `올바른 이메일 형식이라면 이메일 객체를 생성할 수 있다`() {
+            // given
+            val email = "email@domain.com"
+
+            // when
+            val actual = Email(email)
+
+            // then
+            assertThat(actual.value).isEqualTo("email@domain.com")
+        }
+    }
+}
