@@ -3,7 +3,10 @@ package com.loopers.user.presentation
 import com.loopers.fixture.user.UserFixture
 import com.loopers.support.E2ETestSupport
 import com.loopers.support.presentation.ApiResponse
+import com.loopers.user.application.UserService
+import com.loopers.user.application.command.UserSignUpCommand
 import com.loopers.user.domain.vo.GenderType
+import com.loopers.user.presentation.dto.MyDetailResponse
 import com.loopers.user.presentation.dto.SignUpResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
@@ -16,7 +19,9 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 
-class UserV1ControllerE2ETest : E2ETestSupport() {
+class UserV1ControllerE2ETest(
+    private val userService: UserService,
+) : E2ETestSupport() {
     @Nested
     inner class `회원 가입 요청을 받았을 때` {
         @Test
@@ -148,6 +153,53 @@ class UserV1ControllerE2ETest : E2ETestSupport() {
             assertAll(
                 { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(400)) },
                 { assertThat(actual.body?.meta?.message).isEqualTo("필수 필드 'gender'이(가) 누락되었습니다.") },
+            )
+        }
+    }
+
+    @Nested
+    inner class `내 정보 조회 요청을 받았을 때` {
+        @Test
+        fun `정보 조회에 성공한 경우 해당 유저 정보를 응답으로 반환 한다`() {
+            // given
+            val requestUrl = "/api/v1/users/me"
+            val fixture = UserFixture.기본
+            userService.signUp(UserSignUpCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
+
+            val headers = HttpHeaders()
+            headers["X-USER-ID"] = fixture.userId
+            val responseType = object : ParameterizedTypeReference<ApiResponse<MyDetailResponse>>() {}
+
+            // when
+            val actual = testRestTemplate.exchange(requestUrl, HttpMethod.GET, HttpEntity<Any>(headers), responseType)
+
+            // then
+            assertAll(
+                { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(200)) },
+                { assertThat(actual.body?.data?.userId).isEqualTo("userId") },
+                { assertThat(actual.body?.data?.email).isEqualTo("email@domain.com") },
+                { assertThat(actual.body?.data?.birthDay).isEqualTo("2025-01-01") },
+                { assertThat(actual.body?.data?.gender).isEqualTo(GenderType.MEN) },
+            )
+        }
+
+        @Test
+        fun `요청 헤더에 X-USER-ID 헤더가 없는 경우 400 응답을 반환 한다`() {
+            // given
+            val requestUrl = "/api/v1/users/me"
+            val fixture = UserFixture.기본
+            userService.signUp(UserSignUpCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
+
+            val responseType = object : ParameterizedTypeReference<ApiResponse<MyDetailResponse>>() {}
+
+            // when
+            val actual =
+                testRestTemplate.exchange(requestUrl, HttpMethod.GET, HttpEntity<Any>(HttpHeaders()), responseType)
+
+            // then
+            assertAll(
+                { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(400)) },
+                { assertThat(actual.body?.meta?.message).isEqualTo("userId 가 누락되었습니다.") },
             )
         }
     }
