@@ -6,6 +6,7 @@ import com.loopers.support.error.ErrorType
 import com.loopers.user.application.command.UserSignUpCommand
 import com.loopers.user.domain.vo.BirthDay
 import com.loopers.user.domain.vo.Email
+import com.loopers.user.domain.vo.GenderType
 import com.loopers.user.domain.vo.UserId
 import com.loopers.user.fake.TestUserRepository
 import io.mockk.spyk
@@ -27,7 +28,8 @@ class UserServiceImplTest {
             val userFixture = UserFixture.기본
             userRepository.save(userFixture.toEntity())
 
-            val command = UserSignUpCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender)
+            val command =
+                UserSignUpCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender)
 
             // when then
             assertThatThrownBy {
@@ -43,7 +45,8 @@ class UserServiceImplTest {
             val userRepository = TestUserRepository()
             val cut = UserServiceImpl(userRepository)
             val userFixture = UserFixture.기본
-            val command = UserSignUpCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender)
+            val command =
+                UserSignUpCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender)
 
             // when
             val actual = cut.signUp(command)
@@ -60,7 +63,8 @@ class UserServiceImplTest {
             val userRepository = spyk(TestUserRepository())
             val cut = UserServiceImpl(userRepository)
             val userFixture = UserFixture.기본
-            val command = UserSignUpCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender)
+            val command =
+                UserSignUpCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender)
 
             // when
             cut.signUp(command)
@@ -75,6 +79,60 @@ class UserServiceImplTest {
                     },
                 )
             }
+        }
+    }
+
+    @Nested
+    inner class `회원 ID 로 회원 정보를 조회할 때` {
+        @Test
+        fun `유저 저장소에서 ID 에 해당하는 회원을 찾는다`() {
+            // given
+            val userRepository = spyk(TestUserRepository())
+            val cut = UserServiceImpl(userRepository)
+
+            val user = userRepository.save(UserFixture.기본.toEntity())
+
+            val userId = user.userId.value
+
+            // when
+            cut.searchDetailByUserId(userId)
+
+            // then
+            verify(exactly = 1) { userRepository.findByUserId(UserId("userId") ) }
+        }
+
+        @Test
+        fun `해당 ID 의 회원이 없다면 CoreException UserNotFound 예외를 던진다`() {
+            // given
+            val userRepository = TestUserRepository()
+            val cut = UserServiceImpl(userRepository)
+
+            val userId = UserFixture.기본.userId
+
+            // when then
+            assertThatThrownBy {
+                cut.searchDetailByUserId(userId)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(ErrorType.USER_NOT_FOUND, "회원 ID가 userId 에 해당하는 유저 정보를 찾지 못했습니다.")
+        }
+
+        @Test
+        fun `해당 ID 의 회원이 존재할 경우 회원 정보가 반환 된다`() {
+            // given
+            val userRepository = TestUserRepository()
+            val cut = UserServiceImpl(userRepository)
+
+            val user = userRepository.save(UserFixture.기본.toEntity())
+
+            val userId = user.userId.value
+
+            // when
+            val actual = cut.searchDetailByUserId(userId)
+
+            // then
+            assertThat(actual).extracting("userId", "email", "birthDay", "gender")
+                .containsExactly("userId", "email@domain.com", "2025-01-01", GenderType.MEN)
         }
     }
 }

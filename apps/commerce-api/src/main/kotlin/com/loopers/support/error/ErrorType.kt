@@ -21,6 +21,10 @@ enum class ErrorType(val status: HttpStatus, val code: String, val message: Stri
         "생년월일은 현재 날짜보다 이전이어야 합니다.",
     ),
     EXISTS_USER_LOGIN_ID(HttpStatus.CONFLICT, HttpStatus.CONFLICT.reasonPhrase, "이미 가입 된 ID 입니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "회원 정보를 찾을 수 없습니다."),
+
+    // Auth
+    REQUIRED_USER_ID_HEADER(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "userId 가 누락되었습니다."),
 
     /** 범용 에러 */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase, "일시적인 오류가 발생했습니다."),

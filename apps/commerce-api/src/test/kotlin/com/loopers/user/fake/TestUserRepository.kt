@@ -15,4 +15,8 @@ class TestUserRepository : UserRepository {
 
         return user
     }
+
+    override fun findByUserId(userId: UserId): User? = users.values.find {
+        it.userId == userId
+    }
 }
