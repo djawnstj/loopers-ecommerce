@@ -23,15 +23,15 @@ class UserV1Controller(
     fun signUp(
         @RequestBody request: SignUpRequest,
     ): ApiResponse<SignUpResponse> {
-        val signUpResult = userFacade.createUser(request.toCommand())
-        return ApiResponse.success(SignUpResponse(signUpResult))
+        val result = userFacade.createUser(request.toCommand())
+        return ApiResponse.success(SignUpResponse(result))
     }
 
     @GetMapping("/api/v1/users/me")
     fun searchMyDetail(
         @UserId userId: String,
     ): ApiResponse<MyDetailResponse> {
-        val searchDetailResult = userFacade.searchDetailByUserId(userId)
-        return ApiResponse.success(MyDetailResponse(searchDetailResult))
+        val result = userFacade.searchDetailByUserId(userId)
+        return ApiResponse.success(MyDetailResponse(result))
     }
 }
