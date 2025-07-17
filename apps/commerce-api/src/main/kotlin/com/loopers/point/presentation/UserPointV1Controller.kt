@@ -1,6 +1,6 @@
 package com.loopers.point.presentation
 
-import com.loopers.auth.presentation.UserId
+import com.loopers.auth.presentation.LoginId
 import com.loopers.point.application.UserPointFacade
 import com.loopers.point.presentation.dto.BalanceResponse
 import com.loopers.point.presentation.dto.ChargePointRequest
@@ -18,18 +18,18 @@ class UserPointV1Controller(
 
     @PostMapping("/api/v1/points/charge")
     fun chargePoint(
-        @UserId userId: String,
+        @LoginId loginId: String,
         @RequestBody request: ChargePointRequest,
     ): ApiResponse<ChargePointResponse> {
-        val result = userPointFacade.increasePoint(userId, request.amount)
+        val result = userPointFacade.increasePoint(loginId, request.amount)
         return ApiResponse.success(ChargePointResponse(result.balance))
     }
 
     @GetMapping("/api/v1/points")
     fun getBalance(
-        @UserId userId: String,
+        @LoginId loginId: String,
     ): ApiResponse<BalanceResponse> {
-        val result = userPointFacade.getPointBalance(userId)
+        val result = userPointFacade.getPointBalance(loginId)
         return ApiResponse.success(BalanceResponse(result.balance))
     }
 }

@@ -4,7 +4,7 @@ import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
 
 @JvmInline
-value class UserId(val value: String) {
+value class LoginId(val value: String) {
     init {
         if (!USER_ID_REGEX.matches(value)) {
             throw CoreException(ErrorType.INVALID_USER_ID_FORMAT)

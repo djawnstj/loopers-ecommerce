@@ -4,7 +4,7 @@ import com.loopers.user.domain.User
 import com.loopers.user.domain.vo.GenderType
 
 data class UserDetailResult(
-    val userId: String,
+    val loginId: String,
     val email: String,
     val birthDay: String,
     val gender: GenderType,
@@ -12,7 +12,7 @@ data class UserDetailResult(
     companion object {
         operator fun invoke(user: User): UserDetailResult =
             UserDetailResult(
-                user.userId.value,
+                user.loginId.value,
                 user.email.value,
                 user.birthDay.value,
                 user.gender

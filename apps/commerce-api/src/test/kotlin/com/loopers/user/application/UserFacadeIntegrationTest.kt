@@ -25,7 +25,7 @@ class UserFacadeIntegrationTest(
         fun `생성하고자 하는 회원 정보가 저장 된다`() {
             // given
             val fixture = UserFixture.기본
-            val command = UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender)
+            val command = UserCreateCommand(fixture.loginId, fixture.email, fixture.birthDay, fixture.gender)
 
             // when
             cut.createUser(command)
@@ -33,15 +33,15 @@ class UserFacadeIntegrationTest(
             // then
             val actual = userRepository.findAll()
             assertThat(actual).hasSize(1)
-                .extracting("userId", "email", "birthDay", "gender")
-                .containsExactly(Tuple.tuple("userId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN))
+                .extracting("loginId", "email", "birthDay", "gender")
+                .containsExactly(Tuple.tuple("loginId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN))
         }
 
         @Test
         fun `초기 포인트 값이 저장 된다`() {
             // given
             val fixture = UserFixture.기본
-            val command = UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender)
+            val command = UserCreateCommand(fixture.loginId, fixture.email, fixture.birthDay, fixture.gender)
 
             // when
             cut.createUser(command)
@@ -57,15 +57,15 @@ class UserFacadeIntegrationTest(
         fun `생성한 회원 정보를 반환 한다`() {
             // given
             val fixture = UserFixture.기본
-            val command = UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender)
+            val command = UserCreateCommand(fixture.loginId, fixture.email, fixture.birthDay, fixture.gender)
 
             // when
             val actual = cut.createUser(command)
 
             // then
             assertThat(actual)
-                .extracting("userId", "email", "birthDay", "gender")
-                .containsExactly("userId", "email@domain.com", "2025-01-01", GenderType.MEN)
+                .extracting("loginId", "email", "birthDay", "gender")
+                .containsExactly("loginId", "email@domain.com", "2025-01-01", GenderType.MEN)
         }
     }
 }

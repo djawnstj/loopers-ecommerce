@@ -15,7 +15,7 @@ import java.math.BigDecimal
 class UserPointFacadeTest {
 
     @Nested
-    inner class `회원 ID 로 포인트를 증가시킬 때` {
+    inner class `로그인 ID 로 포인트를 증가시킬 때` {
         @Test
         fun `회원 정보를 가져온다`() {
             // given
@@ -24,14 +24,14 @@ class UserPointFacadeTest {
 
             val cut = UserPointFacade(userPointService, userService)
 
-            val anyUserId = "userId"
+            val anyUserId = "loginId"
             val amount = UserPointFixture.`1000 포인트`.balance
 
             // when
             cut.increasePoint(anyUserId, amount)
 
             // then
-            verify(exactly = 1) { userService.getUserProfile("userId") }
+            verify(exactly = 1) { userService.getUserProfile("loginId") }
         }
 
         @Test
@@ -42,7 +42,7 @@ class UserPointFacadeTest {
 
             val cut = UserPointFacade(userPointService, userService)
 
-            val anyUserId = "userId"
+            val anyUserId = "loginId"
             val amount = UserPointFixture.`1000 포인트`.balance
             val user: User = mockk()
             val userId = 1L
@@ -65,7 +65,7 @@ class UserPointFacadeTest {
 
             val cut = UserPointFacade(userPointService, userService)
 
-            val anyUserId = "userId"
+            val anyUserId = "loginId"
             val amount = UserPointFixture.`1000 포인트`.balance
             val user: User = mockk()
             val userId = 1L
@@ -85,7 +85,7 @@ class UserPointFacadeTest {
     }
 
     @Nested
-    inner class `회원 ID 로 포인트 잔액을 가져올 때` {
+    inner class `로그인 ID 로 포인트 잔액을 가져올 때` {
         @Test
         fun `회원 정보를 가져온다`() {
             // given
@@ -94,13 +94,13 @@ class UserPointFacadeTest {
 
             val cut = UserPointFacade(userPointService, userService)
 
-            val anyUserId = "userId"
+            val anyUserId = "loginId"
 
             // when
             cut.getPointBalance(anyUserId)
 
             // then
-            verify(exactly = 1) { userService.getUserProfile("userId") }
+            verify(exactly = 1) { userService.getUserProfile("loginId") }
         }
 
         @Test
@@ -111,7 +111,7 @@ class UserPointFacadeTest {
 
             val cut = UserPointFacade(userPointService, userService)
 
-            val anyUserId = "userId"
+            val anyUserId = "loginId"
             val user: User = mockk()
             val userId = 1L
             val userPoint = UserPointFixture.`1000 포인트`.toEntity()
@@ -135,7 +135,7 @@ class UserPointFacadeTest {
 
             val cut = UserPointFacade(userPointService, userService)
 
-            val anyUserId = "userId"
+            val anyUserId = "loginId"
             val user: User = mockk()
             val userId = 1L
             val userPoint = UserPointFixture.`1000 포인트`.toEntity()

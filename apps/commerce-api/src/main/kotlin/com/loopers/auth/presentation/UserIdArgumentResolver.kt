@@ -10,7 +10,7 @@ import org.springframework.web.method.support.ModelAndViewContainer
 
 class UserIdArgumentResolver : HandlerMethodArgumentResolver {
     override fun supportsParameter(parameter: MethodParameter): Boolean {
-        return parameter.hasParameterAnnotation(UserId::class.java) &&
+        return parameter.hasParameterAnnotation(LoginId::class.java) &&
                 parameter.parameterType == String::class.java
     }
 
@@ -19,14 +19,14 @@ class UserIdArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?,
-    ): String = webRequest.getHeader(USER_ID_HEADER)
-        ?: throw CoreException(ErrorType.REQUIRED_USER_ID_HEADER)
+    ): String = webRequest.getHeader(LOGIN_ID_HEADER)
+        ?: throw CoreException(ErrorType.REQUIRED_LOGIN_ID_HEADER)
 
     companion object {
-        private const val USER_ID_HEADER = "X-USER-ID"
+        private const val LOGIN_ID_HEADER = "X-USER-ID"
     }
 }
 
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class UserId
+annotation class LoginId

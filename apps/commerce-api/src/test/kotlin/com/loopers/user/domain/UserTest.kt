@@ -18,7 +18,7 @@ class UserTest {
         val user = User(userId, email, birthDay, gender)
 
         // then
-        assertThat(user.userId.value).isEqualTo("test123")
+        assertThat(user.loginId.value).isEqualTo("test123")
         assertThat(user.email.value).isEqualTo("test@example.com")
         assertThat(user.birthDay.value).isEqualTo("1990-01-01")
         assertThat(user.gender).isEqualTo(GenderType.MEN)

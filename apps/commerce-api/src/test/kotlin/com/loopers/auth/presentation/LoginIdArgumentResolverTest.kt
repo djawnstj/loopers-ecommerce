@@ -13,13 +13,13 @@ import org.springframework.web.bind.support.WebDataBinderFactory
 import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.web.method.support.ModelAndViewContainer
 
-class UserIdArgumentResolverTest {
+class LoginIdArgumentResolverTest {
 
     class MethodFixture {
         fun 애너테이션_없는_문자열_파라미터_메서드(문자열_파라미터: String) = Unit
         fun 문자열_아닌_파라미터_메서드(문자열_아닌_파라미터: Int) = Unit
-        fun 애너테이션_있지만_문자열이_아닌_파라미터_메서드(@UserId 애너테이션_파라미터: Int) = Unit
-        fun 애너테이션_있는_문자열_파라미터_메서드(@UserId 애너테이션_문자열_파라미터: String) = Unit
+        fun 애너테이션_있지만_문자열이_아닌_파라미터_메서드(@LoginId 애너테이션_파라미터: Int) = Unit
+        fun 애너테이션_있는_문자열_파라미터_메서드(@LoginId 애너테이션_문자열_파라미터: String) = Unit
     }
 
     @Nested
@@ -86,7 +86,7 @@ class UserIdArgumentResolverTest {
     @Nested
     inner class `HTTP 요청에서 X-USER-ID 헤더를 핸들러 파라미터로 매핑할 때` {
         @Test
-        fun `헤더에 X-USER-ID 가 없다면 CoreException REQUIRED_USER_ID_HEADER 예외를 던진다`() {
+        fun `헤더에 X-USER-ID 가 없다면 CoreException REQUIRED_LOGIN_ID_HEADER 예외를 던진다`() {
             // given
             val cut = UserIdArgumentResolver()
 
@@ -102,7 +102,7 @@ class UserIdArgumentResolverTest {
                 cut.resolveArgument(parameter, mavContainer, webRequest, binderFactory)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
-                .containsExactly(ErrorType.REQUIRED_USER_ID_HEADER, "userId 가 누락되었습니다.")
+                .containsExactly(ErrorType.REQUIRED_LOGIN_ID_HEADER, "loginId 가 누락되었습니다.")
         }
 
         @Test
@@ -115,13 +115,13 @@ class UserIdArgumentResolverTest {
             val webRequest: NativeWebRequest = mockk()
             val binderFactory: WebDataBinderFactory = mockk()
 
-            every { webRequest.getHeader("X-USER-ID") } returns "userId"
+            every { webRequest.getHeader("X-USER-ID") } returns "loginId"
 
             // when
             val actual = cut.resolveArgument(parameter, mavContainer, webRequest, binderFactory)
 
             // then
-            assertThat(actual).isEqualTo("userId")
+            assertThat(actual).isEqualTo("loginId")
         }
     }
 }

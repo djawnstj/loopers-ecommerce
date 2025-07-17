@@ -35,7 +35,7 @@ class UserPointV1ControllerE2ETest(
             val userFixture = UserFixture.기본
             val user = userFacade.createUser(
                 UserCreateCommand(
-                    userFixture.userId,
+                    userFixture.loginId,
                     userFixture.email,
                     userFixture.birthDay,
                     userFixture.gender
@@ -44,7 +44,7 @@ class UserPointV1ControllerE2ETest(
 
             val request = ChargePointRequest(UserPointFixture.`1000 포인트`.balance)
             val headers = HttpHeaders()
-            headers["X-USER-ID"] = user.userId
+            headers["X-USER-ID"] = user.loginId
             val httpRequest = HttpEntity(request, headers)
             val responseType = object : ParameterizedTypeReference<ApiResponse<ChargePointResponse>>() {}
 
@@ -64,7 +64,7 @@ class UserPointV1ControllerE2ETest(
             val userFixture = UserFixture.기본
             val user = userFacade.createUser(
                 UserCreateCommand(
-                    userFixture.userId,
+                    userFixture.loginId,
                     userFixture.email,
                     userFixture.birthDay,
                     userFixture.gender
@@ -73,7 +73,7 @@ class UserPointV1ControllerE2ETest(
 
             val request = "{}"
             val headers = HttpHeaders()
-            headers["X-USER-ID"] = user.userId
+            headers["X-USER-ID"] = user.loginId
             headers.contentType = MediaType.APPLICATION_JSON
             val httpRequest = HttpEntity(request, headers)
             val responseType = object : ParameterizedTypeReference<ApiResponse<ChargePointResponse>>() {}
@@ -105,7 +105,7 @@ class UserPointV1ControllerE2ETest(
             // then
             assertAll(
                 { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(400)) },
-                { assertThat(actual.body?.meta?.message).isEqualTo("userId 가 누락되었습니다.") },
+                { assertThat(actual.body?.meta?.message).isEqualTo("loginId 가 누락되었습니다.") },
             )
         }
     }
@@ -120,7 +120,7 @@ class UserPointV1ControllerE2ETest(
             val userFixture = UserFixture.기본
             val user = userFacade.createUser(
                 UserCreateCommand(
-                    userFixture.userId,
+                    userFixture.loginId,
                     userFixture.email,
                     userFixture.birthDay,
                     userFixture.gender
@@ -128,7 +128,7 @@ class UserPointV1ControllerE2ETest(
             )
 
             val headers = HttpHeaders()
-            headers["X-USER-ID"] = user.userId
+            headers["X-USER-ID"] = user.loginId
             val httpRequest = HttpEntity<Any>(headers)
             val responseType = object : ParameterizedTypeReference<ApiResponse<ChargePointResponse>>() {}
 
@@ -154,7 +154,7 @@ class UserPointV1ControllerE2ETest(
             // then
             assertAll(
                 { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(400)) },
-                { assertThat(actual.body?.meta?.message).isEqualTo("userId 가 누락되었습니다.") },
+                { assertThat(actual.body?.meta?.message).isEqualTo("loginId 가 누락되었습니다.") },
             )
         }
     }

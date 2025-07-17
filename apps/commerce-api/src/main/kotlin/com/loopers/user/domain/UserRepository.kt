@@ -1,9 +1,9 @@
 package com.loopers.user.domain
 
-import com.loopers.user.domain.vo.UserId
+import com.loopers.user.domain.vo.LoginId
 
 interface UserRepository {
-    fun existsByUserId(userId: UserId): Boolean
+    fun existsByLoginId(loginId: LoginId): Boolean
     fun save(user: User): User
-    fun findByUserId(userId: UserId): User?
+    fun findByLoginId(loginId: LoginId): User?
 }

@@ -12,13 +12,13 @@ class UserPointFacade(
     private val userPointService: UserPointService,
     private val userService: UserService,
 ) {
-    fun increasePoint(userId: String, amount: BigDecimal): UserPointIncreaseResult {
-        val user = userService.getUserProfile(userId)
+    fun increasePoint(loginId: String, amount: BigDecimal): UserPointIncreaseResult {
+        val user = userService.getUserProfile(loginId)
         return UserPointIncreaseResult(userPointService.chargePoint(user.id, amount))
     }
 
-    fun getPointBalance(userId: String): UserPointBalanceResult {
-        val user = userService.getUserProfile(userId)
+    fun getPointBalance(loginId: String): UserPointBalanceResult {
+        val user = userService.getUserProfile(loginId)
         val userPoint = userPointService.getUserPoint(user.id)
 
         return UserPointBalanceResult(userPoint.balance.value)

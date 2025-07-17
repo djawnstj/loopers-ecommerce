@@ -46,24 +46,24 @@ class UserServiceIntegrationTest(
             // then
             val actual = userRepository.findAll()
             assertThat(actual).hasSize(1)
-                .extracting("userId", "email", "birthDay", "gender")
-                .containsExactly(Tuple.tuple("userId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN))
+                .extracting("loginId", "email", "birthDay", "gender")
+                .containsExactly(Tuple.tuple("loginId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN))
         }
     }
 
     @Nested
-    inner class `회원 ID 로 회원 정보를 조회할 때` {
+    inner class `로그인 ID 로 회원 정보를 조회할 때` {
         @Test
         fun `해당 ID 의 회원을 찾을 수 없다면 CoreException UserNotFound 예외를 던진다`() {
             // given
-            val userId = UserFixture.기본.userId
+            val loginId = UserFixture.기본.loginId
 
             // when then
             assertThatThrownBy {
-                cut.getUserProfile(userId)
+                cut.getUserProfile(loginId)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
-                .containsExactly(ErrorType.USER_NOT_FOUND, "회원 ID가 userId 에 해당하는 유저 정보를 찾지 못했습니다.")
+                .containsExactly(ErrorType.USER_NOT_FOUND, "로그인 ID가 loginId 에 해당하는 유저 정보를 찾지 못했습니다.")
         }
 
         @Test
@@ -71,14 +71,14 @@ class UserServiceIntegrationTest(
             // given
             val user = userRepository.save(UserFixture.기본.toEntity())
 
-            val userId = user.userId.value
+            val loginId = user.loginId.value
 
             // when
-            val actual = cut.getUserProfile(userId)
+            val actual = cut.getUserProfile(loginId)
 
             // then
-            assertThat(actual).extracting("userId", "email", "birthDay", "gender")
-                .containsExactly("userId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN)
+            assertThat(actual).extracting("loginId", "email", "birthDay", "gender")
+                .containsExactly("loginId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN)
         }
     }
 }

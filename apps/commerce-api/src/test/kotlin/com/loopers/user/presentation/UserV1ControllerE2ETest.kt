@@ -37,7 +37,7 @@ class UserV1ControllerE2ETest(
             // then
             assertAll(
                 { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(201)) },
-                { assertThat(actual.body?.data?.userId).isEqualTo("userId") },
+                { assertThat(actual.body?.data?.loginId).isEqualTo("loginId") },
                 { assertThat(actual.body?.data?.email).isEqualTo("email@domain.com") },
                 { assertThat(actual.body?.data?.birthDay).isEqualTo("2025-01-01") },
                 { assertThat(actual.body?.data?.gender).isEqualTo(GenderType.MEN) },
@@ -45,7 +45,7 @@ class UserV1ControllerE2ETest(
         }
 
         @Test
-        fun `요청 바디에 userId 가 없다면 400 응답을 반환 한다`() {
+        fun `요청 바디에 loginId 가 없다면 400 응답을 반환 한다`() {
             // given
             val requestUrl = "/api/v1/users"
             val fixture = UserFixture.기본
@@ -68,7 +68,7 @@ class UserV1ControllerE2ETest(
             // then
             assertAll(
                 { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(400)) },
-                { assertThat(actual.body?.meta?.message).isEqualTo("필수 필드 'userId'이(가) 누락되었습니다.") },
+                { assertThat(actual.body?.meta?.message).isEqualTo("필수 필드 'loginId'이(가) 누락되었습니다.") },
             )
         }
 
@@ -79,7 +79,7 @@ class UserV1ControllerE2ETest(
             val fixture = UserFixture.기본
             val request = """
                 {
-                    "userId": "${fixture.userId}",
+                    "loginId": "${fixture.loginId}",
                     "birthDay": "${fixture.birthDay}",
                     "gender": "${fixture.gender}"
                 }
@@ -107,7 +107,7 @@ class UserV1ControllerE2ETest(
             val fixture = UserFixture.기본
             val request = """
                 {
-                    "userId": "${fixture.userId}",
+                    "loginId": "${fixture.loginId}",
                     "email": "${fixture.email}",
                     "gender": "${fixture.gender}"
                 }
@@ -135,7 +135,7 @@ class UserV1ControllerE2ETest(
             val fixture = UserFixture.기본
             val request = """
                 {
-                    "userId": "${fixture.userId}",
+                    "loginId": "${fixture.loginId}",
                     "email": "${fixture.email}",
                     "birthDay": "${fixture.birthDay}"
                 }
@@ -164,10 +164,10 @@ class UserV1ControllerE2ETest(
             // given
             val requestUrl = "/api/v1/users/me"
             val fixture = UserFixture.기본
-            userFacade.createUser(UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
+            userFacade.createUser(UserCreateCommand(fixture.loginId, fixture.email, fixture.birthDay, fixture.gender))
 
             val headers = HttpHeaders()
-            headers["X-USER-ID"] = fixture.userId
+            headers["X-USER-ID"] = fixture.loginId
             val responseType = object : ParameterizedTypeReference<ApiResponse<MyDetailResponse>>() {}
 
             // when
@@ -176,7 +176,7 @@ class UserV1ControllerE2ETest(
             // then
             assertAll(
                 { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(200)) },
-                { assertThat(actual.body?.data?.userId).isEqualTo("userId") },
+                { assertThat(actual.body?.data?.loginId).isEqualTo("loginId") },
                 { assertThat(actual.body?.data?.email).isEqualTo("email@domain.com") },
                 { assertThat(actual.body?.data?.birthDay).isEqualTo("2025-01-01") },
                 { assertThat(actual.body?.data?.gender).isEqualTo(GenderType.MEN) },
@@ -188,7 +188,7 @@ class UserV1ControllerE2ETest(
             // given
             val requestUrl = "/api/v1/users/me"
             val fixture = UserFixture.기본
-            userFacade.createUser(UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
+            userFacade.createUser(UserCreateCommand(fixture.loginId, fixture.email, fixture.birthDay, fixture.gender))
 
             val responseType = object : ParameterizedTypeReference<ApiResponse<MyDetailResponse>>() {}
 
@@ -199,7 +199,7 @@ class UserV1ControllerE2ETest(
             // then
             assertAll(
                 { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(400)) },
-                { assertThat(actual.body?.meta?.message).isEqualTo("userId 가 누락되었습니다.") },
+                { assertThat(actual.body?.meta?.message).isEqualTo("loginId 가 누락되었습니다.") },
             )
         }
     }

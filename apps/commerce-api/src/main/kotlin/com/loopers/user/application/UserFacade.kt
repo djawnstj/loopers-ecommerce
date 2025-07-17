@@ -22,7 +22,7 @@ class UserFacade(
         return UserCreateResult(user)
     }
 
-    fun searchDetailByUserId(userId: String): UserDetailResult =
-        userService.getUserProfile(userId)
+    fun searchDetailByLoginId(loginId: String): UserDetailResult =
+        userService.getUserProfile(loginId)
             .let(UserDetailResult::invoke)
 }

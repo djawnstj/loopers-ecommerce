@@ -1,6 +1,6 @@
 package com.loopers.user.presentation
 
-import com.loopers.auth.presentation.UserId
+import com.loopers.auth.presentation.LoginId
 import com.loopers.support.presentation.ApiResponse
 import com.loopers.user.application.UserFacade
 import com.loopers.user.presentation.dto.MyDetailResponse
@@ -29,9 +29,9 @@ class UserV1Controller(
 
     @GetMapping("/api/v1/users/me")
     fun searchMyDetail(
-        @UserId userId: String,
+        @LoginId loginId: String,
     ): ApiResponse<MyDetailResponse> {
-        val result = userFacade.searchDetailByUserId(userId)
+        val result = userFacade.searchDetailByLoginId(loginId)
         return ApiResponse.success(MyDetailResponse(result))
     }
 }

@@ -7,7 +7,7 @@ enum class ErrorType(val status: HttpStatus, val code: String, val message: Stri
     INVALID_USER_ID_FORMAT(
         HttpStatus.BAD_REQUEST,
         HttpStatus.BAD_REQUEST.reasonPhrase,
-        "회원 ID 는 6자 이상 10자 이내의 영문 및 숫자만 허용됩니다.",
+        "로그인 ID 는 6자 이상 10자 이내의 영문 및 숫자만 허용됩니다.",
     ),
     INVALID_USER_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "이메일 형식이 올바르지 않습니다."),
     INVALID_USER_BIRTH_DAY_FORMAT(
@@ -24,7 +24,7 @@ enum class ErrorType(val status: HttpStatus, val code: String, val message: Stri
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "회원 정보를 찾을 수 없습니다."),
 
     // Auth
-    REQUIRED_USER_ID_HEADER(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "userId 가 누락되었습니다."),
+    REQUIRED_LOGIN_ID_HEADER(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "loginId 가 누락되었습니다."),
 
     // UserPoint
     REQUIRED_ZERO_OR_POSITIVE_POINT(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "포인트는 0 이상이어야 합니다."),

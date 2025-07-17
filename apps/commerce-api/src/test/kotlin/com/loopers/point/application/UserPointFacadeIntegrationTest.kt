@@ -21,9 +21,9 @@ class UserPointFacadeIntegrationTest(
 ) : IntegrationTestSupport() {
 
     @Nested
-    inner class `회원 ID 로 포인트를 증가시킬 때` {
+    inner class `로그인 ID 로 포인트를 증가시킬 때` {
         @Test
-        fun `존재하지 않는 회원 ID 로 충전을 시도한 경우 CoreException USER_NOT_FOUND 예외를 던진다`() {
+        fun `존재하지 않는 로그인 ID 로 충전을 시도한 경우 CoreException USER_NOT_FOUND 예외를 던진다`() {
             // given
             val notExistsUserId = "anyUserId"
             val amount = UserPointFixture.`1000 포인트`.balance
@@ -33,7 +33,7 @@ class UserPointFacadeIntegrationTest(
                 cut.increasePoint(notExistsUserId, amount)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
-                .containsExactly(ErrorType.USER_NOT_FOUND, "회원 ID가 anyUserId 에 해당하는 유저 정보를 찾지 못했습니다.")
+                .containsExactly(ErrorType.USER_NOT_FOUND, "로그인 ID가 anyUserId 에 해당하는 유저 정보를 찾지 못했습니다.")
         }
 
         @Test
@@ -42,11 +42,11 @@ class UserPointFacadeIntegrationTest(
             val user = userRepository.saveAndFlush(UserFixture.기본.toEntity())
             userPointRepository.saveAndFlush(UserPointFixture.`0 포인트`.toEntity(userId = user.id))
 
-            val userId = user.userId.value
+            val loginId = user.loginId.value
             val amount = UserPointFixture.`1000 포인트`.balance
 
             // when
-            cut.increasePoint(userId, amount)
+            cut.increasePoint(loginId, amount)
 
             // then
             val actual = userPointRepository.findAll()
@@ -61,11 +61,11 @@ class UserPointFacadeIntegrationTest(
             val user = userRepository.saveAndFlush(UserFixture.기본.toEntity())
             userPointRepository.saveAndFlush(UserPointFixture.`0 포인트`.toEntity(userId = user.id))
 
-            val userId = user.userId.value
+            val loginId = user.loginId.value
             val amount = UserPointFixture.`1000 포인트`.balance
 
             // when
-            val actual = cut.increasePoint(userId, amount)
+            val actual = cut.increasePoint(loginId, amount)
 
             // then
             assertThat(actual).extracting("balance").isEqualTo(BigDecimal("1000.00"))
@@ -73,17 +73,17 @@ class UserPointFacadeIntegrationTest(
     }
 
     @Nested
-    inner class `회원 ID 로 포인트 잔액을 가져올 때` {
+    inner class `로그인 ID 로 포인트 잔액을 가져올 때` {
         @Test
         fun `해당 ID 회원이 존재할 경우 보유 포인트가 반환된다`() {
             // given
             val user = userRepository.saveAndFlush(UserFixture.기본.toEntity())
             userPointRepository.saveAndFlush(UserPointFixture.`0 포인트`.toEntity(userId = user.id))
 
-            val userId = user.userId.value
+            val loginId = user.loginId.value
 
             // when
-            val actual = cut.getPointBalance(userId)
+            val actual = cut.getPointBalance(loginId)
 
             // then
             assertThat(actual)

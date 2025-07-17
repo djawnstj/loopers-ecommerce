@@ -4,7 +4,7 @@ import com.loopers.fixture.user.UserFixture
 import com.loopers.support.IntegrationTestSupport
 import com.loopers.user.domain.vo.BirthDay
 import com.loopers.user.domain.vo.GenderType
-import com.loopers.user.domain.vo.UserId
+import com.loopers.user.domain.vo.LoginId
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -22,7 +22,7 @@ class UserRepositoryImplTest(
             jpaRepository.saveAndFlush(UserFixture.기본.toEntity())
 
             // when
-            val actual = cut.existsByUserId(UserId("userId"))
+            val actual = cut.existsByLoginId(LoginId("loginId"))
 
             // then
             assertThat(actual).isTrue
@@ -34,7 +34,7 @@ class UserRepositoryImplTest(
             jpaRepository.saveAndFlush(UserFixture.기본.toEntity())
 
             // when
-            val actual = cut.existsByUserId(UserId("userId1"))
+            val actual = cut.existsByLoginId(LoginId("loginId1"))
 
             // then
             assertThat(actual).isFalse
@@ -67,20 +67,20 @@ class UserRepositoryImplTest(
             // then
             val actual = jpaRepository.findByIdOrNull(user.id)
             assertThat(actual).isNotNull
-                .extracting("userId", "email", "birthDay", "gender")
-                .containsExactly("userId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN)
+                .extracting("loginId", "email", "birthDay", "gender")
+                .containsExactly("loginId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN)
         }
     }
 
     @Nested
-    inner class `회원 ID 로 회원을 조회할 때` {
+    inner class `로그인 ID 로 회원을 조회할 때` {
         @Test
         fun `해당하는 회원을 찾지 못하면 null 을 반환 한다`() {
             // given
-            val userId = UserId(UserFixture.기본.userId)
+            val loginId = LoginId(UserFixture.기본.loginId)
 
             // when
-            val actual = cut.findByUserId(userId)
+            val actual = cut.findByLoginId(loginId)
 
             // then
             assertThat(actual).isNull()
@@ -89,15 +89,15 @@ class UserRepositoryImplTest(
         @Test
         fun `해당하는 회원을 찾으면 User 객체에 담아 반환 한다`() {
             // given
-            val userId = jpaRepository.saveAndFlush(UserFixture.기본.toEntity()).userId
+            val loginId = jpaRepository.saveAndFlush(UserFixture.기본.toEntity()).loginId
 
             // when
-            val actual = cut.findByUserId(userId)
+            val actual = cut.findByLoginId(loginId)
 
             // then
             assertThat(actual).isNotNull
-                .extracting("userId", "email", "birthDay", "gender")
-                .containsExactly("userId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN)
+                .extracting("loginId", "email", "birthDay", "gender")
+                .containsExactly("loginId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN)
         }
     }
 }

@@ -4,7 +4,7 @@ import com.loopers.domain.BaseEntity
 import com.loopers.user.domain.vo.BirthDay
 import com.loopers.user.domain.vo.Email
 import com.loopers.user.domain.vo.GenderType
-import com.loopers.user.domain.vo.UserId
+import com.loopers.user.domain.vo.LoginId
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
@@ -12,12 +12,12 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "member")
 class User private constructor(
-    userId: UserId,
+    loginId: LoginId,
     email: Email,
     birthDay: BirthDay,
     gender: GenderType,
 ) : BaseEntity() {
-    var userId: UserId = userId
+    var loginId: LoginId = loginId
         protected set
     var email: Email = email
         protected set
@@ -30,13 +30,13 @@ class User private constructor(
 
     companion object {
         operator fun invoke(
-            userId: String,
+            loginId: String,
             email: String,
             birthDay: String,
             gender: GenderType,
         ): User =
             User(
-                UserId(userId),
+                LoginId(loginId),
                 Email(email),
                 BirthDay(birthDay),
                 gender,

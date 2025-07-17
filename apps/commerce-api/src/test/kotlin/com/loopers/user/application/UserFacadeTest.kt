@@ -8,7 +8,7 @@ import com.loopers.user.domain.UserService
 import com.loopers.user.domain.vo.BirthDay
 import com.loopers.user.domain.vo.Email
 import com.loopers.user.domain.vo.GenderType
-import com.loopers.user.domain.vo.UserId
+import com.loopers.user.domain.vo.LoginId
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -29,7 +29,7 @@ class UserFacadeTest {
             every {
                 userService.signUp(
                     match {
-                        it.userId == UserId("userId") &&
+                        it.loginId == LoginId("loginId") &&
                                 it.email == Email("email@domain.com") &&
                                 it.birthDay == BirthDay("2025-01-01") &&
                                 it.gender == GenderType.MEN
@@ -37,7 +37,7 @@ class UserFacadeTest {
                 )
             } returnsArgument 0
 
-            val command = UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender)
+            val command = UserCreateCommand(fixture.loginId, fixture.email, fixture.birthDay, fixture.gender)
 
             // when
             cut.createUser(command)
@@ -46,7 +46,7 @@ class UserFacadeTest {
             verify(exactly = 1) {
                 userService.signUp(
                     match {
-                        it.userId == UserId("userId") &&
+                        it.loginId == LoginId("loginId") &&
                                 it.email == Email("email@domain.com") &&
                                 it.birthDay == BirthDay("2025-01-01") &&
                                 it.gender == GenderType.MEN
@@ -69,7 +69,7 @@ class UserFacadeTest {
             every { user.id } returns userId
             every { userPointService.createInitialPoint(1L) } returns mockk()
 
-            val command = UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender)
+            val command = UserCreateCommand(fixture.loginId, fixture.email, fixture.birthDay, fixture.gender)
 
             // when
             cut.createUser(command)
@@ -88,7 +88,7 @@ class UserFacadeTest {
             every {
                 userService.signUp(
                     match {
-                        it.userId == UserId("userId") &&
+                        it.loginId == LoginId("loginId") &&
                                 it.email == Email("email@domain.com") &&
                                 it.birthDay == BirthDay("2025-01-01") &&
                                 it.gender == GenderType.MEN
@@ -96,15 +96,15 @@ class UserFacadeTest {
                 )
             } returnsArgument 0
 
-            val command = UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender)
+            val command = UserCreateCommand(fixture.loginId, fixture.email, fixture.birthDay, fixture.gender)
 
             // when
             val actual = cut.createUser(command)
 
             // then
             assertThat(actual)
-                .extracting("userId", "email", "birthDay", "gender")
-                .containsExactly("userId", "email@domain.com", "2025-01-01", GenderType.MEN)
+                .extracting("loginId", "email", "birthDay", "gender")
+                .containsExactly("loginId", "email@domain.com", "2025-01-01", GenderType.MEN)
         }
     }
 }
