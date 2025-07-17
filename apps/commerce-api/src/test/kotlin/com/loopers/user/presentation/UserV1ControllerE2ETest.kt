@@ -4,7 +4,7 @@ import com.loopers.fixture.user.UserFixture
 import com.loopers.support.E2ETestSupport
 import com.loopers.support.presentation.ApiResponse
 import com.loopers.user.application.UserService
-import com.loopers.user.application.command.UserSignUpCommand
+import com.loopers.user.application.command.UserCreateCommand
 import com.loopers.user.domain.vo.GenderType
 import com.loopers.user.presentation.dto.MyDetailResponse
 import com.loopers.user.presentation.dto.SignUpResponse
@@ -164,7 +164,7 @@ class UserV1ControllerE2ETest(
             // given
             val requestUrl = "/api/v1/users/me"
             val fixture = UserFixture.기본
-            userService.signUp(UserSignUpCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
+            userService.signUp(UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
 
             val headers = HttpHeaders()
             headers["X-USER-ID"] = fixture.userId
@@ -188,7 +188,7 @@ class UserV1ControllerE2ETest(
             // given
             val requestUrl = "/api/v1/users/me"
             val fixture = UserFixture.기본
-            userService.signUp(UserSignUpCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
+            userService.signUp(UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
 
             val responseType = object : ParameterizedTypeReference<ApiResponse<MyDetailResponse>>() {}
 

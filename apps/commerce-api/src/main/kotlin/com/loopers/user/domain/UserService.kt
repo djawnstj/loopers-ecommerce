@@ -1,19 +1,14 @@
-package com.loopers.user.application
+package com.loopers.user.domain
 
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
-import com.loopers.user.application.command.UserDetailResult
-import com.loopers.user.application.command.UserSignUpCommand
-import com.loopers.user.application.command.UserSignUpResult
-import com.loopers.user.domain.User
-import com.loopers.user.domain.UserRepository
 import com.loopers.user.domain.vo.UserId
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface UserService {
-    fun signUp(command: UserSignUpCommand): UserSignUpResult
-    fun searchDetailByUserId(userId: String): UserDetailResult
+    fun signUp(user: User): User
+    fun getUserProfile(userId: String): User
 }
 
 @Service
@@ -23,20 +18,15 @@ class UserServiceImpl(
 ) : UserService {
 
     @Transactional
-    override fun signUp(command: UserSignUpCommand): UserSignUpResult {
-        val user = command.toEntity()
-
+    override fun signUp(user: User): User {
         validateExistsUserId(user)
 
-        userRepository.save(user)
-
-        return UserSignUpResult.fromEntity(user)
+        return userRepository.save(user)
     }
 
-    override fun searchDetailByUserId(userId: String): UserDetailResult =
+    override fun getUserProfile(userId: String): User =
         (userRepository.findByUserId(UserId(userId))
             ?: throw CoreException(ErrorType.USER_NOT_FOUND, "회원 ID가 $userId 에 해당하는 유저 정보를 찾지 못했습니다."))
-            .let(UserDetailResult::invoke)
 
     private fun validateExistsUserId(user: User) {
         val userIdExisted = userRepository.existsByUserId(user.userId)
