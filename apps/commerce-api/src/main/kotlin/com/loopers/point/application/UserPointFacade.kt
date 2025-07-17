@@ -1,5 +1,6 @@
 package com.loopers.point.application
 
+import com.loopers.point.application.command.UserPointBalanceResult
 import com.loopers.point.application.command.UserPointIncreaseResult
 import com.loopers.point.domain.UserPointService
 import com.loopers.user.domain.UserService
@@ -14,5 +15,12 @@ class UserPointFacade(
     fun increasePoint(userId: String, amount: BigDecimal): UserPointIncreaseResult {
         val user = userService.getUserProfile(userId)
         return UserPointIncreaseResult(userPointService.chargePoint(user.id, amount))
+    }
+
+    fun getPointBalance(userId: String): UserPointBalanceResult {
+        val user = userService.getUserProfile(userId)
+        val userPoint = userPointService.getUserPoint(user.id)
+
+        return UserPointBalanceResult(userPoint.balance.value)
     }
 }
