@@ -112,4 +112,42 @@ class UserPointServiceImplTest {
             assertThat(actual).isEqualTo(BigDecimal(1000))
         }
     }
+
+    @Nested
+    inner class `회원 식별자로 포인트를 조회할 때` {
+        @Test
+        fun `해당하는 포인트를 찾지 못하면 CoreException USER_POINT_NOT_FOUND 예외를 던진다`() {
+            // given
+            val userPointRepository = TestUserPointRepository()
+            val cut = UserPointServiceImpl(userPointRepository)
+
+            val anyUserId = 1L
+
+            // when then
+            assertThatThrownBy {
+                cut.getUserPoint(anyUserId)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(ErrorType.USER_POINT_NOT_FOUND, "회원 식별자 1 에 해당하는 포인트를 찾지 못했습니다.")
+        }
+
+        @Test
+        fun `해당하는 포인트를 찾으면 반환 한다`() {
+            // given
+            val userPointRepository = TestUserPointRepository()
+            val cut = UserPointServiceImpl(userPointRepository)
+
+            val userId = 1L
+            val userPoint = UserPointFixture.`0 포인트`.toEntity(userId = userId)
+            userPointRepository.save(userPoint)
+
+            // when
+            val actual = cut.getUserPoint(userId)
+
+            // then
+            assertThat(actual)
+                .extracting("userId", "balance")
+                .containsExactly(1L, BigDecimal.ZERO)
+        }
+    }
 }

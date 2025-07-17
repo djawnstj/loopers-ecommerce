@@ -50,4 +50,22 @@ class UserPointServiceIntegrationTest(
                 .containsExactly(Tuple.tuple(1L, BigDecimal("1000.00")))
         }
     }
+
+    @Nested
+    inner class `회원 식별자로 포인트를 찾을 때` {
+        @Test
+        fun `해당하는 포인트를 찾아 반환 한다`() {
+            // given
+            val userId = 1L
+            userPointRepository.saveAndFlush(UserPointFixture.`0 포인트`.toEntity(userId))
+
+            // when
+            val actual = cut.getUserPoint(userId)
+
+            // then
+            assertThat(actual)
+                .extracting("userId", "balance")
+                .containsExactly(1L, BigDecimal("0.00"))
+        }
+    }
 }
