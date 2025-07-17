@@ -3,7 +3,7 @@ package com.loopers.user.presentation
 import com.loopers.fixture.user.UserFixture
 import com.loopers.support.E2ETestSupport
 import com.loopers.support.presentation.ApiResponse
-import com.loopers.user.application.UserService
+import com.loopers.user.application.UserFacade
 import com.loopers.user.application.command.UserCreateCommand
 import com.loopers.user.domain.vo.GenderType
 import com.loopers.user.presentation.dto.MyDetailResponse
@@ -20,7 +20,7 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 
 class UserV1ControllerE2ETest(
-    private val userService: UserService,
+    private val userFacade: UserFacade,
 ) : E2ETestSupport() {
     @Nested
     inner class `회원 가입 요청을 받았을 때` {
@@ -45,7 +45,7 @@ class UserV1ControllerE2ETest(
         }
 
         @Test
-        fun `요청에 userId 가 없다면 400 응답을 반환 한다`() {
+        fun `요청 바디에 userId 가 없다면 400 응답을 반환 한다`() {
             // given
             val requestUrl = "/api/v1/users"
             val fixture = UserFixture.기본
@@ -73,7 +73,7 @@ class UserV1ControllerE2ETest(
         }
 
         @Test
-        fun `요청에 email 이 없다면 400 응답을 반환 한다`() {
+        fun `요청 바디에 email 이 없다면 400 응답을 반환 한다`() {
             // given
             val requestUrl = "/api/v1/users"
             val fixture = UserFixture.기본
@@ -101,7 +101,7 @@ class UserV1ControllerE2ETest(
         }
 
         @Test
-        fun `요청에 birthDay 가 없다면 400 응답을 반환 한다`() {
+        fun `요청 바디에 birthDay 가 없다면 400 응답을 반환 한다`() {
             // given
             val requestUrl = "/api/v1/users"
             val fixture = UserFixture.기본
@@ -129,7 +129,7 @@ class UserV1ControllerE2ETest(
         }
 
         @Test
-        fun `요청에 gender 가 없다면 400 응답을 반환 한다`() {
+        fun `요청 바디에 gender 가 없다면 400 응답을 반환 한다`() {
             // given
             val requestUrl = "/api/v1/users"
             val fixture = UserFixture.기본
@@ -164,7 +164,7 @@ class UserV1ControllerE2ETest(
             // given
             val requestUrl = "/api/v1/users/me"
             val fixture = UserFixture.기본
-            userService.signUp(UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
+            userFacade.createUser(UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
 
             val headers = HttpHeaders()
             headers["X-USER-ID"] = fixture.userId
@@ -188,7 +188,7 @@ class UserV1ControllerE2ETest(
             // given
             val requestUrl = "/api/v1/users/me"
             val fixture = UserFixture.기본
-            userService.signUp(UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
+            userFacade.createUser(UserCreateCommand(fixture.userId, fixture.email, fixture.birthDay, fixture.gender))
 
             val responseType = object : ParameterizedTypeReference<ApiResponse<MyDetailResponse>>() {}
 
