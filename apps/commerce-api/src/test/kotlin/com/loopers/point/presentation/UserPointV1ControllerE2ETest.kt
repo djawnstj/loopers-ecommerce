@@ -33,7 +33,14 @@ class UserPointV1ControllerE2ETest(
         fun `존재하는 유저가 요청한 경우 충전 후 보유한 포인트 총량을 응답으로 반환 한다`() {
             // given
             val userFixture = UserFixture.기본
-            val user = userFacade.createUser(UserCreateCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender))
+            val user = userFacade.createUser(
+                UserCreateCommand(
+                    userFixture.userId,
+                    userFixture.email,
+                    userFixture.birthDay,
+                    userFixture.gender
+                )
+            )
 
             val request = ChargePointRequest(UserPointFixture.`1000 포인트`.balance)
             val headers = HttpHeaders()
@@ -52,10 +59,17 @@ class UserPointV1ControllerE2ETest(
         }
 
         @Test
-        fun `요청 바디에 userId 가 없다면 400 응답을 반환 한다`() {
+        fun `요청 바디에 amount 가 없다면 400 응답을 반환 한다`() {
             // given
             val userFixture = UserFixture.기본
-            val user = userFacade.createUser(UserCreateCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender))
+            val user = userFacade.createUser(
+                UserCreateCommand(
+                    userFixture.userId,
+                    userFixture.email,
+                    userFixture.birthDay,
+                    userFixture.gender
+                )
+            )
 
             val request = "{}"
             val headers = HttpHeaders()
@@ -81,7 +95,61 @@ class UserPointV1ControllerE2ETest(
 
             // when
             val actual =
-                testRestTemplate.exchange(CHARGE_POINT_URL, HttpMethod.POST, HttpEntity<Any>(HttpHeaders()), responseType)
+                testRestTemplate.exchange(
+                    CHARGE_POINT_URL,
+                    HttpMethod.POST,
+                    HttpEntity<Any>(HttpHeaders()),
+                    responseType
+                )
+
+            // then
+            assertAll(
+                { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(400)) },
+                { assertThat(actual.body?.meta?.message).isEqualTo("userId 가 누락되었습니다.") },
+            )
+        }
+    }
+
+    @Nested
+    inner class `포인트 잔액 조회 요청을 받았을 때` {
+        private val GET_POINT_URL = "/api/v1/points"
+
+        @Test
+        fun `존재하는 유저가 요청한 경우 보유한 포인트를 응답으로 반환 한다`() {
+            // given
+            val userFixture = UserFixture.기본
+            val user = userFacade.createUser(
+                UserCreateCommand(
+                    userFixture.userId,
+                    userFixture.email,
+                    userFixture.birthDay,
+                    userFixture.gender
+                )
+            )
+
+            val headers = HttpHeaders()
+            headers["X-USER-ID"] = user.userId
+            val httpRequest = HttpEntity<Any>(headers)
+            val responseType = object : ParameterizedTypeReference<ApiResponse<ChargePointResponse>>() {}
+
+            // when
+            val actual = testRestTemplate.exchange(GET_POINT_URL, HttpMethod.GET, httpRequest, responseType)
+
+            // then
+            assertAll(
+                { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(200)) },
+                { assertThat(actual.body?.data?.balance).isEqualTo(BigDecimal("0.00")) },
+            )
+        }
+
+        @Test
+        fun `요청 헤더에 X-USER-ID 헤더가 없는 경우 400 응답을 반환 한다`() {
+            // given
+            val responseType = object : ParameterizedTypeReference<ApiResponse<MyDetailResponse>>() {}
+
+            // when
+            val actual =
+                testRestTemplate.exchange(GET_POINT_URL, HttpMethod.GET, HttpEntity<Any>(HttpHeaders()), responseType)
 
             // then
             assertAll(
