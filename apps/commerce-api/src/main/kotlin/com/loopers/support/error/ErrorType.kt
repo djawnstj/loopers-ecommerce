@@ -26,9 +26,14 @@ enum class ErrorType(val status: HttpStatus, val code: String, val message: Stri
     // Auth
     REQUIRED_USER_ID_HEADER(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "userId 가 누락되었습니다."),
 
+    // UserPoint
+    REQUIRED_ZERO_OR_POSITIVE_POINT(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "포인트는 0 이상이어야 합니다."),
+    REQUIRED_POSITIVE_POINT_CHARGE_AMOUNT(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "포인트 충전은 0 보다 커야합니다."),
+
     /** 범용 에러 */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase, "일시적인 오류가 발생했습니다."),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "잘못된 요청입니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "존재하지 않는 요청입니다."),
     CONFLICT(HttpStatus.CONFLICT, HttpStatus.CONFLICT.reasonPhrase, "이미 존재하는 리소스입니다."),
+    USER_POINT_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, ""),
 }

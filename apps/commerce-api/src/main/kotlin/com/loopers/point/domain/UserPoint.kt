@@ -12,16 +12,16 @@ import java.math.BigDecimal
 @Table(name = "user_point")
 class UserPoint(
     userId: Long,
-    point: Point,
+    balance: Point,
 ) : BaseEntity() {
     var userId: Long = userId
         protected set
-    var point: Point = point
+    var balance: Point = balance
         protected set
 
     fun charge(amount: Point) {
         amount.validateChargeable()
-        this.point += amount
+        this.balance += amount
     }
 
     private fun Point.validateChargeable() {
