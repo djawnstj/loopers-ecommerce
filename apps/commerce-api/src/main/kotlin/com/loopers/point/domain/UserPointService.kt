@@ -10,6 +10,7 @@ import java.math.BigDecimal
 interface UserPointService {
     fun createInitialPoint(userId: Long): UserPoint
     fun chargePoint(userId: Long, amount: BigDecimal): BigDecimal
+    fun getUserPoint(userId: Long): UserPoint
 }
 
 @Service
@@ -23,12 +24,17 @@ class UserPointServiceImpl(
 
     @Transactional
     override fun chargePoint(userId: Long, amount: BigDecimal): BigDecimal {
-        val findByUserId = userPointRepository.findByUserId(userId)
-        val userPoint = (findByUserId
-            ?: throw CoreException(ErrorType.USER_POINT_NOT_FOUND, "회원 식별자 $userId 에 해당하는 포인트를 찾지 못했습니다."))
+        val userPoint = getUserPoint(userId)
         userPoint.charge(Point(amount))
 
         return userPoint.balance.value
+    }
+
+    override fun getUserPoint(userId: Long): UserPoint {
+        val userPoint = (userPointRepository.findByUserId(userId)
+            ?: throw CoreException(ErrorType.USER_POINT_NOT_FOUND, "회원 식별자 $userId 에 해당하는 포인트를 찾지 못했습니다."))
+
+        return userPoint
     }
 
     private fun InitialUserPoint(userId: Long): UserPoint =
