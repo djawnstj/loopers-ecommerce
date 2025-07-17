@@ -89,6 +89,66 @@ class UserPointV1ControllerE2ETest(
         }
 
         @Test
+        fun `요청 바디에 amount 가 0 이면 400 응답을 반환 한다`() {
+            // given
+            val userFixture = UserFixture.기본
+            val user = userFacade.createUser(
+                UserCreateCommand(
+                    userFixture.loginId,
+                    userFixture.email,
+                    userFixture.birthDay,
+                    userFixture.gender
+                )
+            )
+
+            val request = ChargePointRequest(UserPointFixture.`0 포인트`.balance)
+            val headers = HttpHeaders()
+            headers["X-USER-ID"] = user.loginId
+            headers.contentType = MediaType.APPLICATION_JSON
+            val httpRequest = HttpEntity(request, headers)
+            val responseType = object : ParameterizedTypeReference<ApiResponse<ChargePointResponse>>() {}
+
+            // when
+            val actual = testRestTemplate.exchange(CHARGE_POINT_URL, HttpMethod.POST, httpRequest, responseType)
+
+            // then
+            assertAll(
+                { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(400)) },
+                { assertThat(actual.body?.meta?.message).contains("포인트 충전은 0 보다 커야합니다.") },
+            )
+        }
+
+        @Test
+        fun `요청 바디에 amount 가 음수이면 400 응답을 반환 한다`() {
+            // given
+            val userFixture = UserFixture.기본
+            val user = userFacade.createUser(
+                UserCreateCommand(
+                    userFixture.loginId,
+                    userFixture.email,
+                    userFixture.birthDay,
+                    userFixture.gender
+                )
+            )
+
+            val request = ChargePointRequest(UserPointFixture.`음수 포인트`.balance)
+            val headers = HttpHeaders()
+            headers["X-USER-ID"] = user.loginId
+            headers.contentType = MediaType.APPLICATION_JSON
+            val httpRequest = HttpEntity(request, headers)
+            val responseType = object : ParameterizedTypeReference<ApiResponse<ChargePointResponse>>() {}
+
+            // when
+            val actual = testRestTemplate.exchange(CHARGE_POINT_URL, HttpMethod.POST, httpRequest, responseType)
+
+            // then
+            assertAll(
+                { assertThat(actual.statusCode).isEqualTo(HttpStatusCode.valueOf(400)) },
+                { assertThat(actual.body?.meta?.message).contains("포인트 충전은 0 보다 커야합니다.") },
+            )
+        }
+
+        @Test
         fun `요청 헤더에 X-USER-ID 헤더가 없는 경우 400 응답을 반환 한다`() {
             // given
             val responseType = object : ParameterizedTypeReference<ApiResponse<MyDetailResponse>>() {}
