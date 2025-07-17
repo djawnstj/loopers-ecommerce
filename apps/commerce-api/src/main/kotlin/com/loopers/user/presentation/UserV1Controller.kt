@@ -2,7 +2,7 @@ package com.loopers.user.presentation
 
 import com.loopers.auth.presentation.UserId
 import com.loopers.support.presentation.ApiResponse
-import com.loopers.user.application.UserService
+import com.loopers.user.application.UserFacade
 import com.loopers.user.presentation.dto.MyDetailResponse
 import com.loopers.user.presentation.dto.SignUpRequest
 import com.loopers.user.presentation.dto.SignUpResponse
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class UserV1Controller(
-    private val userService: UserService,
+    private val userFacade: UserFacade,
 ) {
 
     @PostMapping("/api/v1/users")
@@ -23,15 +23,15 @@ class UserV1Controller(
     fun signUp(
         @RequestBody request: SignUpRequest,
     ): ApiResponse<SignUpResponse> {
-        val signUpResult = userService.signUp(request.toCommand())
-        return ApiResponse.success(SignUpResponse(signUpResult))
+        val result = userFacade.createUser(request.toCommand())
+        return ApiResponse.success(SignUpResponse(result))
     }
 
     @GetMapping("/api/v1/users/me")
     fun searchMyDetail(
         @UserId userId: String,
     ): ApiResponse<MyDetailResponse> {
-        val searchDetailResult = userService.searchDetailByUserId(userId)
-        return ApiResponse.success(MyDetailResponse(searchDetailResult))
+        val result = userFacade.searchDetailByUserId(userId)
+        return ApiResponse.success(MyDetailResponse(result))
     }
 }

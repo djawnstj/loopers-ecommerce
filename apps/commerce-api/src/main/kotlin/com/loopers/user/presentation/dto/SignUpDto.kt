@@ -1,7 +1,7 @@
 package com.loopers.user.presentation.dto
 
-import com.loopers.user.application.command.UserSignUpCommand
-import com.loopers.user.application.command.UserSignUpResult
+import com.loopers.user.application.command.UserCreateCommand
+import com.loopers.user.application.command.UserCreateResult
 import com.loopers.user.domain.vo.GenderType
 
 data class SignUpRequest(
@@ -10,7 +10,7 @@ data class SignUpRequest(
     val birthDay: String,
     val gender: GenderType,
 ) {
-    fun toCommand(): UserSignUpCommand = UserSignUpCommand(userId, email, birthDay, gender)
+    fun toCommand(): UserCreateCommand = UserCreateCommand(userId, email, birthDay, gender)
 }
 
 data class SignUpResponse(
@@ -20,7 +20,7 @@ data class SignUpResponse(
     val gender: GenderType,
 ) {
     companion object {
-        operator fun invoke(result: UserSignUpResult): SignUpResponse =
+        operator fun invoke(result: UserCreateResult): SignUpResponse =
             SignUpResponse(result.userId, result.email, result.birthDay, result.gender)
     }
 }

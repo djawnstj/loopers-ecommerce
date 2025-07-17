@@ -1,9 +1,8 @@
-package com.loopers.user.application
+package com.loopers.user.domain
 
 import com.loopers.fixture.user.UserFixture
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
-import com.loopers.user.application.command.UserSignUpCommand
 import com.loopers.user.domain.vo.BirthDay
 import com.loopers.user.domain.vo.Email
 import com.loopers.user.domain.vo.GenderType
@@ -25,15 +24,12 @@ class UserServiceImplTest {
             // given
             val userRepository = TestUserRepository()
             val cut = UserServiceImpl(userRepository)
-            val userFixture = UserFixture.기본
-            userRepository.save(userFixture.toEntity())
-
-            val command =
-                UserSignUpCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender)
+            val user = UserFixture.기본.toEntity()
+            userRepository.save(user)
 
             // when then
             assertThatThrownBy {
-                cut.signUp(command)
+                cut.signUp(user)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(ErrorType.EXISTS_USER_LOGIN_ID, "이미 가입 된 ID 입니다.")
@@ -44,17 +40,15 @@ class UserServiceImplTest {
             // given
             val userRepository = TestUserRepository()
             val cut = UserServiceImpl(userRepository)
-            val userFixture = UserFixture.기본
-            val command =
-                UserSignUpCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender)
+            val user = UserFixture.기본.toEntity()
 
             // when
-            val actual = cut.signUp(command)
+            val actual = cut.signUp(user)
 
             // then
             assertThat(actual)
                 .extracting("userId", "email", "birthDay")
-                .containsExactly("userId", "email@domain.com", "2025-01-01")
+                .containsExactly("userId", "email@domain.com", BirthDay("2025-01-01"))
         }
 
         @Test
@@ -62,12 +56,10 @@ class UserServiceImplTest {
             // given
             val userRepository = spyk(TestUserRepository())
             val cut = UserServiceImpl(userRepository)
-            val userFixture = UserFixture.기본
-            val command =
-                UserSignUpCommand(userFixture.userId, userFixture.email, userFixture.birthDay, userFixture.gender)
+            val user = UserFixture.기본.toEntity()
 
             // when
-            cut.signUp(command)
+            cut.signUp(user)
 
             // then
             verify(exactly = 1) {
@@ -95,7 +87,7 @@ class UserServiceImplTest {
             val userId = user.userId.value
 
             // when
-            cut.searchDetailByUserId(userId)
+            cut.getUserProfile(userId)
 
             // then
             verify(exactly = 1) { userRepository.findByUserId(UserId("userId") ) }
@@ -111,7 +103,7 @@ class UserServiceImplTest {
 
             // when then
             assertThatThrownBy {
-                cut.searchDetailByUserId(userId)
+                cut.getUserProfile(userId)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(ErrorType.USER_NOT_FOUND, "회원 ID가 userId 에 해당하는 유저 정보를 찾지 못했습니다.")
@@ -128,11 +120,11 @@ class UserServiceImplTest {
             val userId = user.userId.value
 
             // when
-            val actual = cut.searchDetailByUserId(userId)
+            val actual = cut.getUserProfile(userId)
 
             // then
             assertThat(actual).extracting("userId", "email", "birthDay", "gender")
-                .containsExactly("userId", "email@domain.com", "2025-01-01", GenderType.MEN)
+                .containsExactly("userId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN)
         }
     }
 }

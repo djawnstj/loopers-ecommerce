@@ -3,7 +3,7 @@ package com.loopers.user.application.command
 import com.loopers.user.domain.User
 import com.loopers.user.domain.vo.GenderType
 
-data class UserSignUpCommand(
+data class UserCreateCommand(
     val userId: String,
     val email: String,
     val birthDay: String,
@@ -12,14 +12,14 @@ data class UserSignUpCommand(
     fun toEntity(): User = User(userId, email, birthDay, gender)
 }
 
-data class UserSignUpResult(
+data class UserCreateResult(
     val userId: String,
     val email: String,
     val birthDay: String,
     val gender: GenderType,
 ) {
     companion object {
-        fun fromEntity(entity: User): UserSignUpResult =
-            UserSignUpResult(entity.userId.value, entity.email.value, entity.birthDay.value, entity.gender)
+        operator fun invoke(entity: User): UserCreateResult =
+            UserCreateResult(entity.userId.value, entity.email.value, entity.birthDay.value, entity.gender)
     }
 }
