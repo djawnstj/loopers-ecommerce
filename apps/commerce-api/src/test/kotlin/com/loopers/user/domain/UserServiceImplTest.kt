@@ -48,7 +48,7 @@ class UserServiceImplTest {
             // then
             assertThat(actual)
                 .extracting("userId", "email", "birthDay")
-                .containsExactly("userId", "email@domain.com", "2025-01-01")
+                .containsExactly("userId", "email@domain.com", BirthDay("2025-01-01"))
         }
 
         @Test
@@ -124,7 +124,7 @@ class UserServiceImplTest {
 
             // then
             assertThat(actual).extracting("userId", "email", "birthDay", "gender")
-                .containsExactly("userId", "email@domain.com", "2025-01-01", GenderType.MEN)
+                .containsExactly("userId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN)
         }
     }
 }

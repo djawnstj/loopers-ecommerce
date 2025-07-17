@@ -4,6 +4,7 @@ import com.loopers.fixture.user.UserFixture
 import com.loopers.support.IntegrationTestSupport
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
+import com.loopers.user.domain.vo.BirthDay
 import com.loopers.user.domain.vo.GenderType
 import com.loopers.user.infrastructure.JpaUserRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -46,7 +47,7 @@ class UserServiceIntegrationTest(
             val actual = userRepository.findAll()
             assertThat(actual).hasSize(1)
                 .extracting("userId", "email", "birthDay", "gender")
-                .containsExactly(Tuple.tuple("userId", "email@domain.com", "2025-01-01", GenderType.MEN))
+                .containsExactly(Tuple.tuple("userId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN))
         }
     }
 
@@ -77,7 +78,7 @@ class UserServiceIntegrationTest(
 
             // then
             assertThat(actual).extracting("userId", "email", "birthDay", "gender")
-                .containsExactly("userId", "email@domain.com", "2025-01-01", GenderType.MEN)
+                .containsExactly("userId", "email@domain.com", BirthDay("2025-01-01"), GenderType.MEN)
         }
     }
 }
