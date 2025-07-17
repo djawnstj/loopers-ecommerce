@@ -71,4 +71,24 @@ class UserPointFacadeIntegrationTest(
             assertThat(actual).extracting("balance").isEqualTo(BigDecimal("1000.00"))
         }
     }
+
+    @Nested
+    inner class `회원 ID 로 포인트 잔액을 가져올 때` {
+        @Test
+        fun `해당 ID 회원이 존재할 경우 보유 포인트가 반환된다`() {
+            // given
+            val user = userRepository.saveAndFlush(UserFixture.기본.toEntity())
+            userPointRepository.saveAndFlush(UserPointFixture.`0 포인트`.toEntity(userId = user.id))
+
+            val userId = user.userId.value
+
+            // when
+            val actual = cut.getPointBalance(userId)
+
+            // then
+            assertThat(actual)
+                .extracting("balance")
+                .isEqualTo(BigDecimal("0.00"))
+        }
+    }
 }
