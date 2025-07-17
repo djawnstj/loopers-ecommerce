@@ -8,16 +8,13 @@ import com.loopers.support.error.ErrorType
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.server.ServerWebInputException
 import org.springframework.web.servlet.resource.NoResourceFoundException
-import kotlin.collections.joinToString
-import kotlin.jvm.java
-import kotlin.text.isNotEmpty
-import kotlin.text.toRegex
 
 @RestControllerAdvice
 class ApiControllerAdvice {
@@ -27,6 +24,16 @@ class ApiControllerAdvice {
     fun handle(e: CoreException): ResponseEntity<ApiResponse<*>> {
         log.warn("CoreException : {}", e.customMessage ?: e.message, e)
         return failureResponse(errorType = e.errorType, errorMessage = e.customMessage)
+    }
+
+    @ExceptionHandler
+    fun handleBadRequest(e: MethodArgumentNotValidException): ResponseEntity<ApiResponse<*>> {
+        val errorMessage = e.bindingResult.fieldErrors.joinToString(", ") { fieldError ->
+            "${fieldError.field}: ${fieldError.defaultMessage}"
+        }
+
+        val message = "요청 파라미터가 잘못되었습니다 - $errorMessage"
+        return failureResponse(errorType = ErrorType.BAD_REQUEST, errorMessage = message)
     }
 
     @ExceptionHandler

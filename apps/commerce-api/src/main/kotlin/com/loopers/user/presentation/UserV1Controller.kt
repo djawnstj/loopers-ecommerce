@@ -6,6 +6,7 @@ import com.loopers.user.application.UserFacade
 import com.loopers.user.presentation.dto.MyDetailResponse
 import com.loopers.user.presentation.dto.SignUpRequest
 import com.loopers.user.presentation.dto.SignUpResponse
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -21,7 +22,7 @@ class UserV1Controller(
     @PostMapping("/api/v1/users")
     @ResponseStatus(HttpStatus.CREATED)
     fun signUp(
-        @RequestBody request: SignUpRequest,
+        @RequestBody @Valid request: SignUpRequest,
     ): ApiResponse<SignUpResponse> {
         val result = userFacade.createUser(request.toCommand())
         return ApiResponse.success(SignUpResponse(result))

@@ -6,6 +6,7 @@ import com.loopers.point.presentation.dto.BalanceResponse
 import com.loopers.point.presentation.dto.ChargePointRequest
 import com.loopers.point.presentation.dto.ChargePointResponse
 import com.loopers.support.presentation.ApiResponse
+import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -19,7 +20,7 @@ class UserPointV1Controller(
     @PostMapping("/api/v1/points/charge")
     fun chargePoint(
         @LoginId loginId: String,
-        @RequestBody request: ChargePointRequest,
+        @RequestBody @Valid request: ChargePointRequest,
     ): ApiResponse<ChargePointResponse> {
         val result = userPointFacade.increasePoint(loginId, request.amount)
         return ApiResponse.success(ChargePointResponse(result.balance))
