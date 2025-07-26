@@ -22,6 +22,7 @@ erDiagram
     product_item {
         bigint id PK
         bigint product_id FK
+        decimal price
         int quantity
         datetime created_at
         datetime updated_at
