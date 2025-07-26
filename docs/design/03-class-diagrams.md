@@ -4,9 +4,9 @@ classDiagram
         +id: Long
         +name: String
         +status: BrandStatus
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
-        +deletedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
     }
 ```
 
@@ -18,9 +18,9 @@ classDiagram
         +name: String
         -items: ProductItems
         +status: ProductStatus
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
-        +deletedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
         +addItem(ProductItem)
     }
     
@@ -33,9 +33,9 @@ classDiagram
         +product: Product
         +price: Price
         +quantity: Quantity
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
-        +deletedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
         +decreaseQuantity(Int)
     }
     
@@ -51,17 +51,17 @@ classDiagram
         +id: Long
         +userId: Long
         +productId: Long
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
     }
 
     class ProductLikeCount {
         +id: Long
         +productId: Long
         +count: Long
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
-        +deletedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
         +applyLikeCounts(Long)
     }
 
@@ -74,9 +74,9 @@ classDiagram
     class OrderSheet {
         +id: Long
         +userId: Long
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
-        +deletedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
         +addItem(ProductItem, quantity)
     }
     
@@ -87,9 +87,9 @@ classDiagram
         +proudctName: String
         +productPrice: Price
         +quantity: Quantity
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
-        +deletedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
     }
     
     class Order {
@@ -98,9 +98,9 @@ classDiagram
         +orderNumber: String
         +totalAmount: Price
         +payPrice: Price
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
-        +deletedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
         +addItem(OrderSheetItem, quantity)
     }
 
@@ -111,9 +111,9 @@ classDiagram
         +proudctName: String
         +productPrice: Price
         +quantity: Quantity
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
-        +deletedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
     }
     
     class Shipping {
@@ -127,9 +127,9 @@ classDiagram
         +trackingNumber: String
         +shippedAt: LocalDateTime
         +deliveredAt: LocalDateTime
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
-        +deletedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
     }
 
     OrderSheet --> "N" OrderSheetItem: 소유
@@ -145,8 +145,8 @@ classDiagram
         +status: PaymentStatusType
         +method: PaymentMethodType
         +payPrice: Price
-        +createdAt+ LocalDateTime
-        +updatedAt+ LocalDateTime
-        +deletedAt+ LocalDateTime
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
     }
 ```
