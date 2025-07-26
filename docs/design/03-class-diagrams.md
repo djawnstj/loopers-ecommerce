@@ -115,22 +115,6 @@ classDiagram
         +updatedAt: LocalDateTime
         +deletedAt: LocalDateTime
     }
-    
-    class Shipping {
-        +id: Long
-        +orderId: Long
-        +receiverName: String
-        +address: String
-        +phoneNumber: String
-        +deliveryMemo: String
-        +status: ShippingStatusType
-        +trackingNumber: String
-        +shippedAt: LocalDateTime
-        +deliveredAt: LocalDateTime
-        +createdAt: LocalDateTime
-        +updatedAt: LocalDateTime
-        +deletedAt: LocalDateTime
-    }
 
     OrderSheet --> "N" OrderSheetItem: 소유
     Order --> "N" OrderItem: 소유
@@ -145,6 +129,25 @@ classDiagram
         +status: PaymentStatusType
         +method: PaymentMethodType
         +payPrice: Price
+        +createdAt: LocalDateTime
+        +updatedAt: LocalDateTime
+        +deletedAt: LocalDateTime
+    }
+```
+
+```mermaid
+classDiagram
+    class Shipping {
+        +id: Long
+        +orderId: Long
+        +receiverName: String
+        +address: String
+        +phoneNumber: String
+        +deliveryMemo: String
+        +status: ShippingStatusType
+        +trackingNumber: String
+        +shippedAt: LocalDateTime
+        +deliveredAt: LocalDateTime
         +createdAt: LocalDateTime
         +updatedAt: LocalDateTime
         +deletedAt: LocalDateTime
