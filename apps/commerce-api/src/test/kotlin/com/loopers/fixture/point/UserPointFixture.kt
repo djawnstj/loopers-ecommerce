@@ -1,7 +1,7 @@
 package com.loopers.fixture.point
 
-import com.loopers.point.domain.UserPoint
-import com.loopers.point.domain.vo.Point
+import com.loopers.domain.point.UserPoint
+import com.loopers.domain.point.vo.Point
 import java.math.BigDecimal
 
 sealed class UserPointFixture(

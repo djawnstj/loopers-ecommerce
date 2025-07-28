@@ -1,7 +1,7 @@
 package com.loopers.fixture.user
 
-import com.loopers.user.domain.User
-import com.loopers.user.domain.vo.GenderType
+import com.loopers.domain.user.User
+import com.loopers.domain.user.vo.GenderType
 
 sealed class UserFixture(
     val loginId: String = "loginId",
