@@ -90,7 +90,7 @@ class UserServiceImplTest {
             cut.getUserProfile(loginId)
 
             // then
-            verify(exactly = 1) { userRepository.findByLoginId(LoginId("loginId") ) }
+            verify(exactly = 1) { userRepository.findByLoginId(LoginId("loginId")) }
         }
 
         @Test

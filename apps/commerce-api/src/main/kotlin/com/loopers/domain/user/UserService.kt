@@ -25,8 +25,10 @@ class UserServiceImpl(
     }
 
     override fun getUserProfile(loginId: String): User =
-        (userRepository.findByLoginId(LoginId(loginId))
-            ?: throw CoreException(ErrorType.USER_NOT_FOUND, "로그인 ID가 $loginId 에 해당하는 유저 정보를 찾지 못했습니다."))
+        (
+            userRepository.findByLoginId(LoginId(loginId))
+            ?: throw CoreException(ErrorType.USER_NOT_FOUND, "로그인 ID가 $loginId 에 해당하는 유저 정보를 찾지 못했습니다.")
+        )
 
     private fun validateExistsUserId(user: User) {
         val loginIdExisted = userRepository.existsByLoginId(user.loginId)

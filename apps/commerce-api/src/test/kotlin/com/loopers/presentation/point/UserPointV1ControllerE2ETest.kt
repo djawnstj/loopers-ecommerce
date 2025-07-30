@@ -38,8 +38,8 @@ class UserPointV1ControllerE2ETest(
                     userFixture.loginId,
                     userFixture.email,
                     userFixture.birthDay,
-                    userFixture.gender
-                )
+                    userFixture.gender,
+                ),
             )
 
             val request = ChargePointRequest(UserPointFixture.`1000 포인트`.balance)
@@ -67,8 +67,8 @@ class UserPointV1ControllerE2ETest(
                     userFixture.loginId,
                     userFixture.email,
                     userFixture.birthDay,
-                    userFixture.gender
-                )
+                    userFixture.gender,
+                ),
             )
 
             val request = "{}"
@@ -97,8 +97,8 @@ class UserPointV1ControllerE2ETest(
                     userFixture.loginId,
                     userFixture.email,
                     userFixture.birthDay,
-                    userFixture.gender
-                )
+                    userFixture.gender,
+                ),
             )
 
             val request = ChargePointRequest(UserPointFixture.`0 포인트`.balance)
@@ -127,8 +127,8 @@ class UserPointV1ControllerE2ETest(
                     userFixture.loginId,
                     userFixture.email,
                     userFixture.birthDay,
-                    userFixture.gender
-                )
+                    userFixture.gender,
+                ),
             )
 
             val request = ChargePointRequest(UserPointFixture.`음수 포인트`.balance)
@@ -159,7 +159,7 @@ class UserPointV1ControllerE2ETest(
                     CHARGE_POINT_URL,
                     HttpMethod.POST,
                     HttpEntity<Any>(HttpHeaders()),
-                    responseType
+                    responseType,
                 )
 
             // then
@@ -183,8 +183,8 @@ class UserPointV1ControllerE2ETest(
                     userFixture.loginId,
                     userFixture.email,
                     userFixture.birthDay,
-                    userFixture.gender
-                )
+                    userFixture.gender,
+                ),
             )
 
             val headers = HttpHeaders()
