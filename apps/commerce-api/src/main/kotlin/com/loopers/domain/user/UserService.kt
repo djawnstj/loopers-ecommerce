@@ -1,8 +1,8 @@
 package com.loopers.domain.user
 
+import com.loopers.domain.user.vo.LoginId
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
-import com.loopers.domain.user.vo.LoginId
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
