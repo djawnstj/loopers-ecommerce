@@ -1,10 +1,12 @@
 package com.loopers.infrastructure.product
 
+import com.loopers.domain.product.Product
 import com.loopers.domain.product.ProductRepository
 import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.support.IntegrationTestSupport
 import com.loopers.support.enums.sort.ProductSortType
+import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
@@ -75,23 +77,6 @@ class ProductRepositoryImplTest(
         }
 
         @Test
-        fun `offset과 limit이 적용되어 조회 된다`() {
-            // given
-            val products = (1..5).map {
-                ProductFixture.create(name = "상품 $it")
-            }
-
-            jpaRepository.saveAllAndFlush(products)
-
-            // when
-            val result = cut.findBySortType(brandId = null, sortBy = null, offset = 1, limit = 2)
-
-            // then
-            assertThat(result).hasSize(2)
-            assertThat(result.map { it.name }).containsExactly("상품 4", "상품 3")
-        }
-
-        @Test
         fun `brandId로 필터링하여 조회할 수 있다`() {
             // given
             val brand1Product1 = ProductFixture.create(name = "브랜드1 상품1", brandId = 1L)
@@ -127,10 +112,27 @@ class ProductRepositoryImplTest(
         }
 
         @Test
+        fun `offset과 limit이 적용되어 조회 된다`() {
+            // given
+            val products = (1..5).map {
+                ProductFixture.create(name = "상품 $it")
+            }
+
+            jpaRepository.saveAllAndFlush(products)
+
+            // when
+            val result = cut.findBySortType(brandId = null, sortBy = null, offset = 1, limit = 2)
+
+            // then
+            assertThat(result).hasSize(2)
+            assertThat(result.map { it.name }).containsExactly("상품 4", "상품 3")
+        }
+
+        @Test
         fun `삭제되지 않은 상품만 조회된다`() {
             // given
             val activeProduct = ProductFixture.`활성 상품 1`.toEntity()
-            val deletedProduct = ProductFixture.create(name = "삭제된상품").apply { delete() }
+            val deletedProduct = ProductFixture.create(name = "삭제된상품").also(Product::delete)
 
             jpaRepository.saveAllAndFlush(listOf(activeProduct, deletedProduct))
 
@@ -177,7 +179,7 @@ class ProductRepositoryImplTest(
         @Test
         fun `삭제된 상품 ID로 조회하면 null을 반환 한다`() {
             // given
-            val product = ProductFixture.`활성 상품 1`.toEntity().apply { delete() }
+            val product = ProductFixture.`활성 상품 1`.toEntity().also(Product::delete)
             val savedProduct = jpaRepository.saveAndFlush(product)
 
             // when

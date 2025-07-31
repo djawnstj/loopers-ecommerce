@@ -27,7 +27,8 @@ class Product(
         protected set
 
     @Embedded
-    private var items: ProductItems = ProductItems()
+    var items: ProductItems = ProductItems()
+        protected set
 
     @Enumerated(EnumType.STRING)
     var status: ProductStatusType = status

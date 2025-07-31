@@ -14,12 +14,16 @@ import java.math.BigDecimal
 @Table(name = "product_item")
 class ProductItem private constructor(
     product: Product,
+    name: String,
     price: Price,
     quantity: Quantity,
 ) : BaseEntity() {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     var product: Product = product
+        protected set
+
+    var name: String = name
         protected set
 
     var price: Price = price
@@ -29,7 +33,7 @@ class ProductItem private constructor(
         protected set
 
     companion object {
-        operator fun invoke(product: Product, price: BigDecimal, quantity: Int): ProductItem =
-            ProductItem(product, Price(price), Quantity(quantity))
+        operator fun invoke(product: Product, name: String, price: BigDecimal, quantity: Int): ProductItem =
+            ProductItem(product, name, Price(price), Quantity(quantity))
     }
 }

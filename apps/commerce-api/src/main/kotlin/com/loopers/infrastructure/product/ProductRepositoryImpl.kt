@@ -19,6 +19,7 @@ class ProductRepositoryImpl(
                 entity(Product::class),
             ).from(
                 entity(Product::class),
+                leftFetchJoin(Product::items),
             ).whereAnd(
                 eqBrandId(brandId),
                 path(Product::status).eq(ProductStatusType.ACTIVE),
@@ -34,6 +35,7 @@ class ProductRepositoryImpl(
         ).from(
             entity(Product::class),
         ).whereAnd(
+            path(Product::id).eq(id),
             path(Product::status).eq(ProductStatusType.ACTIVE),
             path(Product::deletedAt).isNull(),
         )

@@ -1,6 +1,7 @@
 package com.loopers.application.product
 
 import com.loopers.application.product.command.GetProductCommand
+import com.loopers.domain.brand.fake.TestBrandService
 import com.loopers.domain.product.fake.TestProductService
 import com.loopers.fixture.product.ProductFixture
 import org.assertj.core.api.Assertions.assertThat
@@ -11,7 +12,8 @@ class ProductFacadeTest {
     fun `상품 목록을 조회할 수 있다`() {
         // given
         val productService = TestProductService()
-        val cut = ProductFacade(productService)
+        val brandService = TestBrandService()
+        val cut = ProductFacade(productService, brandService)
 
         val activeProduct = ProductFixture.`활성 상품 1`.toEntity()
         val inactiveProduct = ProductFixture.`비활성 상품`.toEntity()
