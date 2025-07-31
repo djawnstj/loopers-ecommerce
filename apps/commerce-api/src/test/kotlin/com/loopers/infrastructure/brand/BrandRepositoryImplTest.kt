@@ -23,10 +23,10 @@ class BrandRepositoryImplTest(
             val savedBrand = jpaRepository.saveAndFlush(brand)
 
             // when
-            val result = cut.findActiveBrandById(savedBrand.id)
+            val actual =cut.findActiveBrandById(savedBrand.id)
 
             // then
-            assertThat(result).isNotNull
+            assertThat(actual).isNotNull
                 .extracting("name", "status")
                 .containsExactly("활성브랜드", com.loopers.domain.brand.vo.BrandStatusType.ACTIVE)
         }
@@ -37,10 +37,10 @@ class BrandRepositoryImplTest(
             val nonExistentId = 999L
 
             // when
-            val result = cut.findActiveBrandById(nonExistentId)
+            val actual =cut.findActiveBrandById(nonExistentId)
 
             // then
-            assertThat(result).isNull()
+            assertThat(actual).isNull()
         }
 
         @Test
@@ -50,10 +50,10 @@ class BrandRepositoryImplTest(
             val savedBrand = jpaRepository.saveAndFlush(inactiveBrand)
 
             // when
-            val result = cut.findActiveBrandById(savedBrand.id)
+            val actual =cut.findActiveBrandById(savedBrand.id)
 
             // then
-            assertThat(result).isNull()
+            assertThat(actual).isNull()
         }
 
         @Test
@@ -63,10 +63,10 @@ class BrandRepositoryImplTest(
             val savedBrand = jpaRepository.saveAndFlush(brand)
 
             // when
-            val result = cut.findActiveBrandById(savedBrand.id)
+            val actual =cut.findActiveBrandById(savedBrand.id)
 
             // then
-            assertThat(result).isNull()
+            assertThat(actual).isNull()
         }
     }
 }

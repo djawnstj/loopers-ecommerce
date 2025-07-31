@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 
 interface ProductService {
     fun getProducts(param: GetProductParam): List<Product>
-    fun getActiveProductDetail(id: Long): Product
+    fun getActiveProductInfo(id: Long): Product
     fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView
 }
 
@@ -21,7 +21,7 @@ class ProductServiceImpl(
     override fun getProducts(param: GetProductParam): List<Product> =
         productRepository.findBySortType(param.brandId, param.sortType, param.page, param.perPage)
 
-    override fun getActiveProductDetail(id: Long): Product =
+    override fun getActiveProductInfo(id: Long): Product =
         productRepository.findActiveProductById(id) ?: throw CoreException(
             ErrorType.PRODUCT_NOT_FOUND,
             "식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.",

@@ -47,10 +47,10 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val result = cut.getProducts(param)
+            val actual =cut.getProducts(param)
 
             // then
-            assertThat(result).hasSize(2)
+            assertThat(actual).hasSize(2)
                 .extracting("name", "status")
                 .containsExactlyInAnyOrder(
                     Tuple.tuple("활성상품 1", ProductStatusType.ACTIVE),
@@ -75,10 +75,10 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val result = cut.getProducts(param)
+            val actual =cut.getProducts(param)
 
             // then
-            assertThat(result).hasSize(2)
+            assertThat(actual).hasSize(2)
                 .extracting("name", "brandId")
                 .containsExactlyInAnyOrder(Tuple.tuple("브랜드1 상품1", 1L), Tuple.tuple("브랜드1 상품2", 1L))
         }
@@ -99,10 +99,10 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val result = cut.getProducts(param)
+            val actual =cut.getProducts(param)
 
             // then
-            assertThat(result).hasSize(2)
+            assertThat(actual).hasSize(2)
                 .extracting("name", "brandId")
                 .containsExactlyInAnyOrder(Tuple.tuple("브랜드1 상품", 1L), Tuple.tuple("브랜드2 상품", 2L))
         }
@@ -123,10 +123,10 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val result = cut.getProducts(param)
+            val actual =cut.getProducts(param)
 
             // then
-            assertThat(result).hasSize(2)
+            assertThat(actual).hasSize(2)
                 .extracting("saleStartAt")
                 .containsExactly(
                     LocalDateTime.parse("2025-01-02T00:00:00"),
@@ -150,10 +150,10 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val result = cut.getProducts(param)
+            val actual =cut.getProducts(param)
 
             // then
-            assertThat(result).hasSize(2)
+            assertThat(actual).hasSize(2)
                 .extracting("id")
                 .containsExactly(2L, 1L)
         }
@@ -175,10 +175,10 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val result = cut.getProducts(param)
+            val actual =cut.getProducts(param)
 
             // then
-            assertThat(result).hasSize(2)
+            assertThat(actual).hasSize(2)
                 .extracting("name")
                 .containsExactly("상품 4", "상품 3")
         }
@@ -199,10 +199,10 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val result = cut.getProducts(param)
+            val actual =cut.getProducts(param)
 
             // then
-            assertThat(result).hasSize(1)
+            assertThat(actual).hasSize(1)
                 .extracting("deletedAt")
                 .containsExactly(null)
         }
@@ -218,10 +218,10 @@ class ProductServiceIntegrationTest(
             val savedProduct = jpaProductRepository.saveAndFlush(product)
 
             // when
-            val result = cut.getActiveProductDetail(savedProduct.id)
+            val actual =cut.getActiveProductInfo(savedProduct.id)
 
             // then
-            assertThat(result).isNotNull
+            assertThat(actual).isNotNull
                 .extracting("name")
                 .isEqualTo("활성상품 1")
         }
@@ -233,12 +233,12 @@ class ProductServiceIntegrationTest(
 
             // when & then
             assertThatThrownBy {
-                cut.getActiveProductDetail(nonExistentId)
+                cut.getActiveProductInfo(nonExistentId)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(
                     ErrorType.PRODUCT_NOT_FOUND,
-                    "상품 식별자가 999 에 해당하는 상품 정보를 찾지 못했습니다.",
+                    "식별자가 999 에 해당하는 상품 정보를 찾지 못했습니다.",
                 )
         }
 
@@ -250,7 +250,7 @@ class ProductServiceIntegrationTest(
 
             // when & then
             assertThatThrownBy {
-                cut.getActiveProductDetail(savedProduct.id)
+                cut.getActiveProductInfo(savedProduct.id)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(
@@ -272,10 +272,10 @@ class ProductServiceIntegrationTest(
             jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
 
             // when
-            val result = cut.aggregateProductDetail(product, brand)
+            val actual =cut.aggregateProductDetail(product, brand)
 
             // then
-            assertThat(result)
+            assertThat(actual)
                 .extracting(
                     "name",
                     "saleStartAt",
@@ -298,10 +298,10 @@ class ProductServiceIntegrationTest(
             val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
 
             // when
-            val result = cut.aggregateProductDetail(product, brand)
+            val actual =cut.aggregateProductDetail(product, brand)
 
             // then
-            assertThat(result.likeCount).isEqualTo(LikeCount.ZERO)
+            assertThat(actual.likeCount).isEqualTo(LikeCount.ZERO)
         }
 
         @Test
@@ -314,10 +314,10 @@ class ProductServiceIntegrationTest(
             jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
 
             // when
-            val result = cut.aggregateProductDetail(product, brand)
+            val actual =cut.aggregateProductDetail(product, brand)
 
             // then
-            assertThat(result.likeCount).isEqualTo(LikeCount.ZERO)
+            assertThat(actual.likeCount).isEqualTo(LikeCount.ZERO)
         }
     }
 }

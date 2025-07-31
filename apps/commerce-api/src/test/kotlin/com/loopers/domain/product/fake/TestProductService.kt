@@ -41,10 +41,10 @@ class TestProductService : ProductService {
         return sorted.drop(param.page * param.perPage).take(param.perPage)
     }
 
-    override fun getActiveProductDetail(id: Long): Product {
+    override fun getActiveProductInfo(id: Long): Product {
         return products.find { 
             it.id == id && it.status == ProductStatusType.ACTIVE && it.deletedAt == null 
-        } ?: throw CoreException(ErrorType.PRODUCT_NOT_FOUND, "상품 식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.")
+        } ?: throw CoreException(ErrorType.PRODUCT_NOT_FOUND, "식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.")
     }
 
     override fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView {

@@ -86,10 +86,10 @@ class ProductRepositoryImplTest(
             jpaRepository.saveAllAndFlush(listOf(brand1Product1, brand1Product2, brand2Product1))
 
             // when
-            val result = cut.findBySortType(brandId = 1L, sortBy = null, offset = 0, limit = 10)
+            val actual =cut.findBySortType(brandId = 1L, sortBy = null, offset = 0, limit = 10)
 
             // then
-            assertThat(result).hasSize(2)
+            assertThat(actual).hasSize(2)
                 .extracting("name", "brandId")
                 .containsExactlyInAnyOrder(Tuple.tuple("브랜드1 상품1", 1L), Tuple.tuple("브랜드1 상품2", 1L))
         }
@@ -103,10 +103,10 @@ class ProductRepositoryImplTest(
             jpaRepository.saveAllAndFlush(listOf(brand1Product, brand2Product))
 
             // when
-            val result = cut.findBySortType(brandId = null, sortBy = null, offset = 0, limit = 10)
+            val actual =cut.findBySortType(brandId = null, sortBy = null, offset = 0, limit = 10)
 
             // then
-            assertThat(result).hasSize(2)
+            assertThat(actual).hasSize(2)
                 .extracting("name", "brandId")
                 .containsExactlyInAnyOrder(Tuple.tuple("브랜드1 상품", 1L), Tuple.tuple("브랜드2 상품", 2L))
         }
@@ -121,11 +121,11 @@ class ProductRepositoryImplTest(
             jpaRepository.saveAllAndFlush(products)
 
             // when
-            val result = cut.findBySortType(brandId = null, sortBy = null, offset = 1, limit = 2)
+            val actual =cut.findBySortType(brandId = null, sortBy = null, offset = 1, limit = 2)
 
             // then
-            assertThat(result).hasSize(2)
-            assertThat(result.map { it.name }).containsExactly("상품 4", "상품 3")
+            assertThat(actual).hasSize(2)
+            assertThat(actual.map { it.name }).containsExactly("상품 4", "상품 3")
         }
 
         @Test
@@ -137,10 +137,10 @@ class ProductRepositoryImplTest(
             jpaRepository.saveAllAndFlush(listOf(activeProduct, deletedProduct))
 
             // when
-            val result = cut.findBySortType(brandId = null, sortBy = null, offset = 0, limit = 10)
+            val actual =cut.findBySortType(brandId = null, sortBy = null, offset = 0, limit = 10)
 
             // then
-            assertThat(result).hasSize(1)
+            assertThat(actual).hasSize(1)
                 .extracting("deletedAt")
                 .containsExactly(null)
         }
@@ -156,10 +156,10 @@ class ProductRepositoryImplTest(
             val savedProduct = jpaRepository.saveAndFlush(product)
 
             // when
-            val result = cut.findActiveProductById(savedProduct.id)
+            val actual =cut.findActiveProductById(savedProduct.id)
 
             // then
-            assertThat(result).isNotNull
+            assertThat(actual).isNotNull
                 .extracting("name")
                 .isEqualTo("활성상품 1")
         }
@@ -170,10 +170,10 @@ class ProductRepositoryImplTest(
             val nonExistentId = 999L
 
             // when
-            val result = cut.findActiveProductById(nonExistentId)
+            val actual =cut.findActiveProductById(nonExistentId)
 
             // then
-            assertThat(result).isNull()
+            assertThat(actual).isNull()
         }
 
         @Test
@@ -183,10 +183,10 @@ class ProductRepositoryImplTest(
             val savedProduct = jpaRepository.saveAndFlush(product)
 
             // when
-            val result = cut.findActiveProductById(savedProduct.id)
+            val actual =cut.findActiveProductById(savedProduct.id)
 
             // then
-            assertThat(result).isNull()
+            assertThat(actual).isNull()
         }
     }
 }

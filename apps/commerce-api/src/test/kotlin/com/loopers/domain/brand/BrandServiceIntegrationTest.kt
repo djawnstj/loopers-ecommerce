@@ -25,10 +25,10 @@ class BrandServiceIntegrationTest(
             val savedBrand = jpaBrandRepository.saveAndFlush(brand)
 
             // when
-            val result = cut.getActiveBrandDetail(savedBrand.id)
+            val actual =cut.getActiveBrandDetail(savedBrand.id)
 
             // then
-            assertThat(result).isNotNull
+            assertThat(actual).isNotNull
                 .extracting("name", "status")
                 .containsExactly("활성브랜드", com.loopers.domain.brand.vo.BrandStatusType.ACTIVE)
         }

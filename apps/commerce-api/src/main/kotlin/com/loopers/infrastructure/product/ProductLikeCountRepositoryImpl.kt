@@ -15,7 +15,7 @@ class ProductLikeCountRepositoryImpl(
             entity(ProductLikeCount::class),
         ).whereAnd(
             path(ProductLikeCount::productId).eq(productId),
-            path(ProductLikeCount::deletedAt).isNotNull(),
+            path(ProductLikeCount::deletedAt).isNull(),
         )
     }.firstOrNull()
 }

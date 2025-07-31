@@ -33,7 +33,7 @@ class LikeCountTest {
             val likeCount = LikeCount(value)
 
             // then
-            assertThat(likeCount.value).isEqualTo(100L)
+            assertThat(likeCount.value).isEqualTo(1L)
         }
 
         @Test

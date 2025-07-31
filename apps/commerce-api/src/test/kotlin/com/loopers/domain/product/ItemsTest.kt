@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
-class ProductItemsTest {
+class ItemsTest {
 
     @Nested
     inner class `상품 항목 컬렉션을 생성할 때` {

@@ -21,6 +21,15 @@ class TestBrandService : BrandService {
         return brand
     }
 
+    fun addBrands(brandList: List<Brand>) {
+        brandList.forEach { brand ->
+            val idField = brand::class.java.superclass.getDeclaredField("id")
+            idField.isAccessible = true
+            val id = idField.get(brand) as Long
+            brands[id] = brand
+        }
+    }
+
     fun clear() {
         brands.clear()
         nextId = 1L

@@ -6,7 +6,7 @@ import jakarta.persistence.OneToMany
 @Embeddable
 class ProductItems(
     @OneToMany(mappedBy = "product")
-    private val items: MutableList<ProductItem> = mutableListOf(),
+    val items: MutableList<ProductItem> = mutableListOf(),
 ) : Iterable<ProductItem> by items {
     fun addItem(item: ProductItem) {
         items.add(item)

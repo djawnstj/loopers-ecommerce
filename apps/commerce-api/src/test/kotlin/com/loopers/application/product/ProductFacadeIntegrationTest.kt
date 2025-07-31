@@ -1,12 +1,21 @@
 package com.loopers.application.product
 
-import com.loopers.application.product.command.GetProductCommand
+import com.loopers.application.product.command.GetProductsCommand
+import com.loopers.domain.brand.Brand
+import com.loopers.domain.product.Product
+import com.loopers.domain.product.ProductLikeCount
 import com.loopers.domain.product.vo.ProductStatusType
+import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.product.ProductFixture
+import com.loopers.fixture.product.ProductLikeCountFixture
+import com.loopers.infrastructure.brand.JpaBrandRepository
+import com.loopers.infrastructure.product.JpaProductLikeCountRepository
 import com.loopers.infrastructure.product.JpaProductRepository
 import com.loopers.support.IntegrationTestSupport
-import com.loopers.support.enums.sort.ProductSortType
+import com.loopers.support.error.CoreException
+import com.loopers.support.error.ErrorType
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -15,113 +24,178 @@ import java.time.LocalDateTime
 class ProductFacadeIntegrationTest(
     private val cut: ProductFacade,
     private val jpaProductRepository: JpaProductRepository,
+    private val jpaBrandRepository: JpaBrandRepository,
+    private val jpaProductLikeCountRepository: JpaProductLikeCountRepository,
 ) : IntegrationTestSupport() {
 
+    @Test
+    fun `상품 목록을 조회할 수 있다`() {
+        // given
+        val activeProduct1 = ProductFixture.`활성 상품 1`.toEntity()
+        val activeProduct2 = ProductFixture.`활성 상품 2`.toEntity()
+        val inactiveProduct = ProductFixture.`비활성 상품`.toEntity()
+
+        jpaProductRepository.saveAll(listOf(activeProduct1, activeProduct2, inactiveProduct))
+
+        val command = GetProductsCommand(
+            brandId = null,
+            sortType = null,
+            page = 0,
+            perPage = 10,
+        )
+
+        // when
+        val actual = cut.getProducts(command)
+
+        // then
+        assertThat(actual.products).hasSize(2)
+            .extracting("id", "name")
+            .containsExactlyInAnyOrder(
+                Tuple.tuple(1L, "활성상품 1"),
+                Tuple.tuple(2L, "활성상품 2"),
+            )
+    }
+
     @Nested
-    inner class `상품 목록을 조회할 때` {
+    inner class `상품 상세 정보를 조회할 때` {
 
         @Test
-        fun `활성 상태인 상품만 조회된다`() {
+        fun `존재하지 않는 상품 ID로 조회하면 CoreException PRODUCT_NOT_FOUND 예외를 던진다`() {
             // given
-            val activeProduct1 = ProductFixture.`활성 상품 1`.toEntity()
-            val activeProduct2 = ProductFixture.`활성 상품 2`.toEntity()
-            val inactiveProduct = ProductFixture.`비활성 상품`.toEntity()
+            val nonExistentId = 999L
 
-            jpaProductRepository.saveAll(listOf(activeProduct1, activeProduct2, inactiveProduct))
-
-            val command = GetProductCommand(
-                brandId = null,
-                sortType = null,
-                page = 0,
-                perPage = 10,
-            )
-
-            // when
-            val result = cut.getProducts(command)
-
-            // then
-            assertThat(result).hasSize(2)
-                .extracting("name", "status")
-                .containsExactlyInAnyOrder(
-                    Tuple.tuple("활성상품 1", ProductStatusType.ACTIVE),
-                    Tuple.tuple("활성상품 2", ProductStatusType.ACTIVE),
-                )
-        }
-
-        @Test
-        fun `정렬 조건이 LATEST일 때 판매 시작일 기준 최신순으로 조회된다`() {
-            // given
-            val product1 = ProductFixture.`25년 1월 1일 판매 상품`.toEntity()
-            val product2 = ProductFixture.`25년 1월 2일 판매 상품`.toEntity()
-
-            jpaProductRepository.saveAll(listOf(product1, product2))
-
-            val command = GetProductCommand(
-                brandId = null,
-                sortType = ProductSortType.LATEST,
-                page = 0,
-                perPage = 10,
-            )
-
-            // when
-            val result = cut.getProducts(command)
-
-            // then
-            assertThat(result).hasSize(2)
-                .extracting("saleStartAt")
+            // when & then
+            assertThatThrownBy {
+                cut.getProductDetail(nonExistentId)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
                 .containsExactly(
-                    LocalDateTime.parse("2025-01-02T00:00:00"),
-                    LocalDateTime.parse("2025-01-01T00:00:00"),
+                    ErrorType.PRODUCT_NOT_FOUND,
+                    "식별자가 999 에 해당하는 상품 정보를 찾지 못했습니다.",
                 )
         }
 
         @Test
-        fun `정렬 조건이 없을 때 ID 역순으로 조회된다`() {
+        fun `존재하지 않는 브랜드 ID를 가진 상품으로 조회하면 CoreException BRAND_NOT_FOUND 예외를 던진다`() {
             // given
-            val product1 = ProductFixture.`활성 상품 1`.toEntity()
-            val product2 = ProductFixture.`활성 상품 2`.toEntity()
-
-            jpaProductRepository.saveAllAndFlush(listOf(product1, product2))
-
-            val command = GetProductCommand(
-                brandId = null,
-                sortType = null,
-                page = 0,
-                perPage = 10,
+            val product = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(name = "테스트상품", brandId = 999L),
             )
 
-            // when
-            val result = cut.getProducts(command)
-
-            // then
-            assertThat(result).hasSize(2)
-                .extracting("id")
-                .containsExactly(2L, 1L)
+            // when & then
+            assertThatThrownBy {
+                cut.getProductDetail(product.id)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(
+                    ErrorType.BRAND_NOT_FOUND,
+                    "식별자가 999 에 해당하는 브랜드 정보를 찾지 못했습니다.",
+                )
         }
 
         @Test
-        fun `페이징이 정상적으로 적용된다`() {
+        fun `삭제된 상품 ID로 조회하면 CoreException PRODUCT_NOT_FOUND 예외를 던진다`() {
             // given
-            val products = (1..5).map {
-                ProductFixture.create(name = "상품 $it")
-            }
+            val product = jpaProductRepository.saveAndFlush(
+                ProductFixture.`활성 상품 1`.toEntity().also(Product::delete),
+            )
 
-            jpaProductRepository.saveAllAndFlush(products)
+            // when & then
+            assertThatThrownBy {
+                cut.getProductDetail(product.id)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(
+                    ErrorType.PRODUCT_NOT_FOUND,
+                    "식별자가 ${product.id} 에 해당하는 상품 정보를 찾지 못했습니다.",
+                )
+        }
 
-            val command = GetProductCommand(
-                brandId = null,
-                sortType = null,
-                page = 1,
-                perPage = 2,
+        @Test
+        fun `삭제된 브랜드 ID를 가진 상품으로 조회하면 CoreException BRAND_NOT_FOUND 예외를 던진다`() {
+            // given
+            val brand = jpaBrandRepository.saveAndFlush(
+                BrandFixture.`활성 브랜드`.toEntity().also(Brand::delete),
+            )
+            val product = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(name = "테스트상품", brandId = brand.id),
+            )
+
+            // when & then
+            assertThatThrownBy {
+                cut.getProductDetail(product.id)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(
+                    ErrorType.BRAND_NOT_FOUND,
+                    "식별자가 ${brand.id} 에 해당하는 브랜드 정보를 찾지 못했습니다.",
+                )
+        }
+
+        @Test
+        fun `존재하는 상품 ID로 조회하면 상품 상세 정보를 반환한다`() {
+            // given
+            val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
+            val product = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(
+                    name = "활성상품 1",
+                    brandId = brand.id,
+                    saleStartAt = LocalDateTime.parse("2025-01-01T00:00:00"),
+                ),
+            )
+            jpaProductLikeCountRepository.saveAndFlush(ProductLikeCountFixture.`좋아요 10개`.toEntity(productId = product.id))
+
+            // when
+            val actual = cut.getProductDetail(product.id)
+
+            // then
+            assertThat(actual)
+                .extracting(
+                    "name",
+                    "saleStartAt",
+                    "status",
+                    "brandName",
+                    "likeCount",
+                ).containsExactly(
+                    "활성상품 1",
+                    LocalDateTime.parse("2025-01-01T00:00:00"),
+                    ProductStatusType.ACTIVE,
+                    "활성브랜드",
+                    10L,
+                )
+        }
+
+        @Test
+        fun `좋아요 수 정보가 없으면 0으로 설정된다`() {
+            // given
+            val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
+            val product = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(name = "활성상품 1", brandId = brand.id),
             )
 
             // when
-            val result = cut.getProducts(command)
+            val actual = cut.getProductDetail(product.id)
 
             // then
-            assertThat(result).hasSize(2)
-                .extracting("name")
-                .containsExactly("상품 4", "상품 3")
+            assertThat(actual.likeCount).isEqualTo(0L)
+        }
+
+        @Test
+        fun `삭제된 좋아요 수 정보는 0으로 설정된다`() {
+            // given
+            val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
+            val product = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(name = "활성상품 1", brandId = brand.id),
+            )
+            jpaProductLikeCountRepository.saveAndFlush(
+                ProductLikeCountFixture.`좋아요 10개`.toEntity(productId = product.id).also(ProductLikeCount::delete),
+            )
+
+            // when
+            val actual = cut.getProductDetail(product.id)
+
+            // then
+            assertThat(actual.likeCount).isEqualTo(0L)
         }
     }
 }

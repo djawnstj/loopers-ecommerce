@@ -4,6 +4,7 @@ import com.linecorp.kotlinjdsl.dsl.jpql.Jpql
 import com.linecorp.kotlinjdsl.dsl.jpql.sort.SortNullsStep
 import com.linecorp.kotlinjdsl.querymodel.jpql.predicate.Predicatable
 import com.loopers.domain.product.Product
+import com.loopers.domain.product.ProductItems
 import com.loopers.domain.product.ProductRepository
 import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.support.enums.sort.ProductSortType
@@ -19,7 +20,7 @@ class ProductRepositoryImpl(
                 entity(Product::class),
             ).from(
                 entity(Product::class),
-                leftFetchJoin(Product::items),
+                leftFetchJoin(path(Product::items).path(ProductItems::items)),
             ).whereAnd(
                 eqBrandId(brandId),
                 path(Product::status).eq(ProductStatusType.ACTIVE),
@@ -34,6 +35,7 @@ class ProductRepositoryImpl(
             entity(Product::class),
         ).from(
             entity(Product::class),
+            leftFetchJoin(path(Product::items).path(ProductItems::items)),
         ).whereAnd(
             path(Product::id).eq(id),
             path(Product::status).eq(ProductStatusType.ACTIVE),

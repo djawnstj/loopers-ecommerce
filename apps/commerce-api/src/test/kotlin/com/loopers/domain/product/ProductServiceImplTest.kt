@@ -32,10 +32,10 @@ class ProductServiceImplTest {
             val param = GetProductParam(null, null, 0, 10)
 
             // when
-            val result = cut.getProducts(param)
+            val actual =cut.getProducts(param)
 
             // then
-            assertThat(result).isEmpty()
+            assertThat(actual).isEmpty()
         }
 
         @Test
@@ -53,10 +53,10 @@ class ProductServiceImplTest {
             val param = GetProductParam(null, null, 0, 10)
 
             // when
-            val result = cut.getProducts(param)
+            val actual =cut.getProducts(param)
 
             // then
-            assertThat(result).hasSize(2)
+            assertThat(actual).hasSize(2)
                 .extracting("name", "status")
                 .containsExactlyInAnyOrder(
                     Tuple.tuple("활성상품 1", ProductStatusType.ACTIVE),
@@ -79,10 +79,10 @@ class ProductServiceImplTest {
             val savedProduct = productRepository.save(product)
 
             // when
-            val result = cut.getActiveProductDetail(savedProduct.id)
+            val actual =cut.getActiveProductInfo(savedProduct.id)
 
             // then
-            assertThat(result).isNotNull
+            assertThat(actual).isNotNull
         }
 
         @Test
@@ -96,12 +96,12 @@ class ProductServiceImplTest {
 
             // when & then
             assertThatThrownBy {
-                cut.getActiveProductDetail(nonExistentId)
+                cut.getActiveProductInfo(nonExistentId)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(
                     ErrorType.PRODUCT_NOT_FOUND,
-                    "상품 식별자가 999 에 해당하는 상품 정보를 찾지 못했습니다.",
+                    "식별자가 999 에 해당하는 상품 정보를 찾지 못했습니다.",
                 )
         }
     }
@@ -125,10 +125,10 @@ class ProductServiceImplTest {
             productLikeCountRepository.save(productLikeCount)
 
             // when
-            val result = cut.aggregateProductDetail(savedProduct, brand)
+            val actual =cut.aggregateProductDetail(savedProduct, brand)
 
             // then
-            assertThat(result)
+            assertThat(actual)
                 .extracting(
                     "name",
                     "saleStartAt",
@@ -157,10 +157,10 @@ class ProductServiceImplTest {
             val brand = BrandFixture.`활성 브랜드`.toEntity()
 
             // when
-            val result = cut.aggregateProductDetail(savedProduct, brand)
+            val actual =cut.aggregateProductDetail(savedProduct, brand)
 
             // then
-            assertThat(result.likeCount).isEqualTo(LikeCount.ZERO)
+            assertThat(actual.likeCount).isEqualTo(LikeCount.ZERO)
         }
 
         @Test
@@ -179,10 +179,10 @@ class ProductServiceImplTest {
             productLikeCountRepository.save(productLikeCount)
 
             // when
-            val result = cut.aggregateProductDetail(savedProduct, brand)
+            val actual =cut.aggregateProductDetail(savedProduct, brand)
 
             // then
-            assertThat(result.likeCount).isEqualTo(LikeCount.ZERO)
+            assertThat(actual.likeCount).isEqualTo(LikeCount.ZERO)
         }
     }
 }
