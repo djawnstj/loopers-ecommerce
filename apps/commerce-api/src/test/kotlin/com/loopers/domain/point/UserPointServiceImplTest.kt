@@ -1,7 +1,7 @@
 package com.loopers.domain.point
 
-import com.loopers.fixture.point.UserPointFixture
 import com.loopers.domain.point.vo.Point
+import com.loopers.fixture.point.UserPointFixture
 import com.loopers.infrastructure.point.fake.TestUserPointRepository
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
@@ -148,6 +148,46 @@ class UserPointServiceImplTest {
             assertThat(actual)
                 .extracting("userId", "balance")
                 .containsExactly(1L, BigDecimal.ZERO)
+        }
+    }
+
+    @Nested
+    inner class `회원 식별자로 포인트를 사용할 때` {
+        @Test
+        fun `회원 식별자에 해당하는 포인트가 없으면 CoreException USER_POINT_NOT_FOUND 예외를 던진다`() {
+            // given
+            val userPointRepository = TestUserPointRepository()
+            val cut = UserPointServiceImpl(userPointRepository)
+
+            val anyUserId = 1L
+            val amount = UserPointFixture.`1000 포인트`.balance
+
+            // when then
+            assertThatThrownBy {
+                cut.useUserPoint(anyUserId, amount)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(ErrorType.USER_POINT_NOT_FOUND, "회원 식별자 1 에 해당하는 포인트를 찾지 못했습니다.")
+        }
+
+        @Test
+        fun `포인트 사용 후 잔액이 정상적으로 차감된다`() {
+            // given
+            val userPointRepository = TestUserPointRepository()
+            val cut = UserPointServiceImpl(userPointRepository)
+
+            val userId = 1L
+            val amount = UserPointFixture.`500 포인트`.balance
+            val userPoint = UserPointFixture.`1000 포인트`.toEntity(userId = userId)
+
+            userPointRepository.save(userPoint)
+
+            // when
+            cut.useUserPoint(userId, amount)
+
+            // then
+            val actual = cut.getUserPoint(userId)
+            assertThat(actual.balance.value).isEqualByComparingTo(BigDecimal("500"))
         }
     }
 }

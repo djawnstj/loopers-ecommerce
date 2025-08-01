@@ -1,12 +1,15 @@
 package com.loopers.domain.product
 
+import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.vo.LikeCount
 import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.product.ProductFixture
+import com.loopers.fixture.product.ProductItemFixture
 import com.loopers.fixture.product.ProductLikeCountFixture
 import com.loopers.infrastructure.brand.JpaBrandRepository
+import com.loopers.infrastructure.product.JpaProductItemRepository
 import com.loopers.infrastructure.product.JpaProductLikeCountRepository
 import com.loopers.infrastructure.product.JpaProductRepository
 import com.loopers.support.IntegrationTestSupport
@@ -25,6 +28,7 @@ class ProductServiceIntegrationTest(
     private val jpaProductRepository: JpaProductRepository,
     private val jpaBrandRepository: JpaBrandRepository,
     private val jpaProductLikeCountRepository: JpaProductLikeCountRepository,
+    private val jpaProductItemRepository: JpaProductItemRepository,
 ) : IntegrationTestSupport() {
 
     @Nested
@@ -47,7 +51,7 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val actual =cut.getProducts(param)
+            val actual = cut.getProducts(param)
 
             // then
             assertThat(actual).hasSize(2)
@@ -75,7 +79,7 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val actual =cut.getProducts(param)
+            val actual = cut.getProducts(param)
 
             // then
             assertThat(actual).hasSize(2)
@@ -99,7 +103,7 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val actual =cut.getProducts(param)
+            val actual = cut.getProducts(param)
 
             // then
             assertThat(actual).hasSize(2)
@@ -123,7 +127,7 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val actual =cut.getProducts(param)
+            val actual = cut.getProducts(param)
 
             // then
             assertThat(actual).hasSize(2)
@@ -150,7 +154,7 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val actual =cut.getProducts(param)
+            val actual = cut.getProducts(param)
 
             // then
             assertThat(actual).hasSize(2)
@@ -175,7 +179,7 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val actual =cut.getProducts(param)
+            val actual = cut.getProducts(param)
 
             // then
             assertThat(actual).hasSize(2)
@@ -199,7 +203,7 @@ class ProductServiceIntegrationTest(
             )
 
             // when
-            val actual =cut.getProducts(param)
+            val actual = cut.getProducts(param)
 
             // then
             assertThat(actual).hasSize(1)
@@ -218,7 +222,7 @@ class ProductServiceIntegrationTest(
             val savedProduct = jpaProductRepository.saveAndFlush(product)
 
             // when
-            val actual =cut.getActiveProductInfo(savedProduct.id)
+            val actual = cut.getActiveProductInfo(savedProduct.id)
 
             // then
             assertThat(actual).isNotNull
@@ -231,13 +235,13 @@ class ProductServiceIntegrationTest(
             // given
             val nonExistentId = 999L
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.getActiveProductInfo(nonExistentId)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(
-                    ErrorType.PRODUCT_NOT_FOUND,
+                    ErrorType.PRODUCT_ITEM_NOT_FOUND,
                     "식별자가 999 에 해당하는 상품 정보를 찾지 못했습니다.",
                 )
         }
@@ -248,13 +252,13 @@ class ProductServiceIntegrationTest(
             val product = ProductFixture.`활성 상품 1`.toEntity().also(Product::delete)
             val savedProduct = jpaProductRepository.saveAndFlush(product)
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.getActiveProductInfo(savedProduct.id)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(
-                    ErrorType.PRODUCT_NOT_FOUND,
+                    ErrorType.PRODUCT_ITEM_NOT_FOUND,
                     "식별자가 ${savedProduct.id} 에 해당하는 상품 정보를 찾지 못했습니다.",
                 )
         }
@@ -272,7 +276,7 @@ class ProductServiceIntegrationTest(
             jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
 
             // when
-            val actual =cut.aggregateProductDetail(product, brand)
+            val actual = cut.aggregateProductDetail(product, brand)
 
             // then
             assertThat(actual)
@@ -298,7 +302,7 @@ class ProductServiceIntegrationTest(
             val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
 
             // when
-            val actual =cut.aggregateProductDetail(product, brand)
+            val actual = cut.aggregateProductDetail(product, brand)
 
             // then
             assertThat(actual.likeCount).isEqualTo(LikeCount.ZERO)
@@ -314,10 +318,60 @@ class ProductServiceIntegrationTest(
             jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
 
             // when
-            val actual =cut.aggregateProductDetail(product, brand)
+            val actual = cut.aggregateProductDetail(product, brand)
 
             // then
             assertThat(actual.likeCount).isEqualTo(LikeCount.ZERO)
+        }
+    }
+
+    @Nested
+    inner class `상품 아이템 수량을 차감할 때` {
+
+        @Test
+        fun `존재하지 않는 상품 아이템 ID가 포함되면 CoreException PRODUCT_ITEM_NOT_FOUND 예외를 던진다`() {
+            // given
+            val param = DeductProductItemsQuantityParam(
+                items = listOf(
+                    DeductProductItemsQuantityParam.DeductItem(999L, 3),
+                ),
+            )
+
+            // when then
+            assertThatThrownBy {
+                cut.deductProductItemsQuantity(param)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(
+                    ErrorType.PRODUCT_ITEM_NOT_FOUND,
+                    "일부 상품 아이템을 찾을 수 없습니다.",
+                )
+        }
+
+        @Test
+        fun `차감된 재고를 저장 한다`() {
+            // given
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+            val productItem1 = jpaProductItemRepository.saveAndFlush(ProductItemFixture.`검은색 라지 만원`.toEntity(product))
+            val productItem2 = jpaProductItemRepository.saveAndFlush(ProductItemFixture.`빨간색 라지 만원`.toEntity(product))
+
+            val param = DeductProductItemsQuantityParam(
+                listOf(
+                    DeductProductItemsQuantityParam.DeductItem(productItem1.id, 3),
+                    DeductProductItemsQuantityParam.DeductItem(productItem2.id, 5),
+                ),
+            )
+
+            // when
+            cut.deductProductItemsQuantity(param)
+
+            // then
+            val actual = jpaProductItemRepository.findAll()
+            assertThat(actual).extracting("name", "quantity")
+                .containsExactlyInAnyOrder(
+                    Tuple.tuple("검은색 라지", 7),
+                    Tuple.tuple("빨간색 라지", 5),
+                )
         }
     }
 }

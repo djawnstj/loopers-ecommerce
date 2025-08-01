@@ -13,5 +13,6 @@ value class Point(val value: BigDecimal) {
     }
 
     operator fun plus(other: Point) = Point(value + other.value)
-    operator fun compareTo(other: BigDecimal): Int = value.compareTo(other)
+    operator fun minus(other: Point) = Point(value - other.value)
+    operator fun compareTo(other: Point): Int = value.compareTo(other.value)
 }

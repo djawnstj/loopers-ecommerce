@@ -15,7 +15,7 @@ data class UserDetailResult(
                 user.loginId.value,
                 user.email.value,
                 user.birthDay.value,
-                user.gender
+                user.gender,
             )
     }
 }

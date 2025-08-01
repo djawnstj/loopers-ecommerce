@@ -54,13 +54,13 @@ class ProductFacadeTest {
 
             val nonExistentId = 999L
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.getProductDetail(nonExistentId)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(
-                    ErrorType.PRODUCT_NOT_FOUND,
+                    ErrorType.PRODUCT_ITEM_NOT_FOUND,
                     "식별자가 999 에 해당하는 상품 정보를 찾지 못했습니다.",
                 )
         }
@@ -75,7 +75,7 @@ class ProductFacadeTest {
             val product = ProductFixture.create(name = "테스트상품", brandId = 999L)
             productService.addProducts(listOf(product))
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.getProductDetail(product.id)
             }.isInstanceOf(CoreException::class.java)
@@ -96,13 +96,13 @@ class ProductFacadeTest {
             val product = ProductFixture.`활성 상품 1`.toEntity().apply { delete() }
             productService.addProducts(listOf(product))
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.getProductDetail(product.id)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(
-                    ErrorType.PRODUCT_NOT_FOUND,
+                    ErrorType.PRODUCT_ITEM_NOT_FOUND,
                     "식별자가 ${product.id} 에 해당하는 상품 정보를 찾지 못했습니다.",
                 )
         }

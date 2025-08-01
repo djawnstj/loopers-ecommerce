@@ -11,7 +11,11 @@ class LikeRepositoryImpl(
 ) : LikeRepository {
     override fun save(like: Like): Like = jpaLikeRepository.save(like)
 
-    override fun delete(like: Like) = jpaLikeRepository.deleteByUserIdAndTargetIdAndTarget(like.userId, like.targetId, like.target)
+    override fun delete(like: Like) = jpaLikeRepository.deleteByUserIdAndTargetIdAndTarget(
+        like.userId,
+        like.targetId,
+        like.target,
+    )
 
     override fun existsByUserIdAndTargetIdAndTarget(userId: Long, targetId: Long, target: TargetType): Boolean =
         jpaLikeRepository.existsByUserIdAndTargetIdAndTarget(userId, targetId, target)

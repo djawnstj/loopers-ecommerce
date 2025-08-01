@@ -3,8 +3,10 @@ package com.loopers.domain.product.fake
 import com.loopers.domain.brand.Brand
 import com.loopers.domain.product.Product
 import com.loopers.domain.product.ProductDetailView
+import com.loopers.domain.product.ProductItem
 import com.loopers.domain.product.ProductLikeCount
 import com.loopers.domain.product.ProductService
+import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.vo.LikeCount
 import com.loopers.domain.product.vo.ProductStatusType
@@ -15,6 +17,7 @@ import com.loopers.support.error.ErrorType
 class TestProductService : ProductService {
     private val products = mutableListOf<Product>()
     private val likeCountMap = mutableMapOf<Long, ProductLikeCount>()
+    private val productItems = mutableListOf<ProductItem>()
 
     fun addProducts(products: List<Product>) {
         this.products.addAll(products)
@@ -24,9 +27,24 @@ class TestProductService : ProductService {
         likeCountMap[productLikeCount.productId] = productLikeCount
     }
 
+    fun addProductItems(productItems: List<ProductItem>) {
+        productItems.forEach(this::addProductItem)
+    }
+    
+    private fun addProductItem(productItem: ProductItem) {
+        // Reflection을 사용하여 ID 설정
+        val idField = productItem.javaClass.superclass.getDeclaredField("id")
+        idField.isAccessible = true
+        idField.set(productItem, nextId++)
+        
+        this.productItems.add(productItem)
+    }
+    
+    private var nextId = 1L
+
     override fun getProducts(param: GetProductParam): List<Product> {
-        var activeProducts = products.filter { 
-            it.status == ProductStatusType.ACTIVE && it.deletedAt == null 
+        var activeProducts = products.filter {
+            it.status == ProductStatusType.ACTIVE && it.deletedAt == null
         }
 
         if (param.brandId != null) {
@@ -42,17 +60,37 @@ class TestProductService : ProductService {
     }
 
     override fun getActiveProductInfo(id: Long): Product {
-        return products.find { 
-            it.id == id && it.status == ProductStatusType.ACTIVE && it.deletedAt == null 
-        } ?: throw CoreException(ErrorType.PRODUCT_NOT_FOUND, "식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.")
+        return products.find {
+            it.id == id && it.status == ProductStatusType.ACTIVE && it.deletedAt == null
+        } ?: throw CoreException(ErrorType.PRODUCT_ITEM_NOT_FOUND, "식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.")
     }
 
     override fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView {
         val productLikeCount = likeCountMap[productDetail.id]
             ?.takeIf { it.deletedAt == null }
-            ?.count 
+            ?.count
             ?: LikeCount.ZERO
 
         return ProductDetailView(productDetail, brandDetail, productLikeCount)
+    }
+
+    override fun getProductItemsDetail(productItemIds: List<Long>): List<ProductItem> {
+        val foundItems = productItems.filter { it.id in productItemIds }
+
+        if (foundItems.size != productItemIds.size) {
+            throw CoreException(ErrorType.PRODUCT_ITEM_NOT_FOUND, "일부 상품 아이템을 찾을 수 없습니다.")
+        }
+
+        return foundItems
+    }
+
+    override fun deductProductItemsQuantity(param: DeductProductItemsQuantityParam) {
+        val productItemIds = param.items.map { it.productItemId }
+        val foundItems = getProductItemsDetail(productItemIds)
+
+        param.items.forEach { deductItem ->
+            val productItem = foundItems.first { it.id == deductItem.productItemId }
+            productItem.deduct(deductItem.quantity)
+        }
     }
 }

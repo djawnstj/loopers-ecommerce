@@ -3,6 +3,8 @@ package com.loopers.domain.product
 import com.loopers.domain.BaseEntity
 import com.loopers.domain.product.vo.Price
 import com.loopers.domain.product.vo.Quantity
+import com.loopers.support.error.CoreException
+import com.loopers.support.error.ErrorType
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
@@ -31,6 +33,15 @@ class ProductItem private constructor(
 
     var quantity: Quantity = quantity
         protected set
+
+    fun deduct(deductQuantity: Int) {
+        if (deductQuantity < 0 || quantity.value < deductQuantity) {
+            throw CoreException(ErrorType.INSUFFICIENT_PRODUCT_QUANTITY)
+        }
+
+        val newQuantity = quantity.value - deductQuantity
+        quantity = Quantity(newQuantity)
+    }
 
     companion object {
         operator fun invoke(product: Product, name: String, price: BigDecimal, quantity: Int): ProductItem =
