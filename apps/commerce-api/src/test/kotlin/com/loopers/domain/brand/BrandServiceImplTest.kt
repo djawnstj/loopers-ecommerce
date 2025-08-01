@@ -24,7 +24,7 @@ class BrandServiceImplTest {
             val savedBrand = brandRepository.save(brand)
 
             // when
-            val actual =cut.getActiveBrandDetail(savedBrand.id)
+            val actual = cut.getActiveBrandDetail(savedBrand.id)
 
             // then
             assertThat(actual).isNotNull
@@ -40,7 +40,7 @@ class BrandServiceImplTest {
 
             val nonExistentId = 999L
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.getActiveBrandDetail(nonExistentId)
             }.isInstanceOf(CoreException::class.java)

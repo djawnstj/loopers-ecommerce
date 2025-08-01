@@ -114,7 +114,7 @@ class SimpleLockManagerTest {
             // given
             val cut = SimpleLockManager()
 
-            // when & then
+            // when then
             cut.unlock("non-existent-key")
         }
     }

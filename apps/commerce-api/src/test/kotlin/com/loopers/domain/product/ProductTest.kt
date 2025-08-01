@@ -61,7 +61,6 @@ class ProductTest {
                 { assertThat(product.saleStartAt).isEqualTo(LocalDateTime.parse("2025-01-01T00:00:00")) },
                 { assertThat(product.status).isEqualTo(ProductStatusType.INACTIVE) },
             )
-
         }
     }
 }

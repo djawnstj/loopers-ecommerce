@@ -39,7 +39,7 @@ class LikeFacadeTest {
                 target = TargetType.PRODUCT,
             )
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.createLike(command)
             }.isInstanceOf(CoreException::class.java)
@@ -141,7 +141,7 @@ class LikeFacadeTest {
                 target = TargetType.PRODUCT,
             )
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.deleteLike(command)
             }.isInstanceOf(CoreException::class.java)

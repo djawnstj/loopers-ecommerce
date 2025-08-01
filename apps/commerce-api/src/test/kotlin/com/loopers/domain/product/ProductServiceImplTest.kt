@@ -1,11 +1,14 @@
 package com.loopers.domain.product
 
+import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.vo.LikeCount
 import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.product.ProductFixture
+import com.loopers.fixture.product.ProductItemFixture
 import com.loopers.fixture.product.ProductLikeCountFixture
+import com.loopers.infrastructure.product.fake.TestProductItemRepository
 import com.loopers.infrastructure.product.fake.TestProductLikeCountRepository
 import com.loopers.infrastructure.product.fake.TestProductRepository
 import com.loopers.support.error.CoreException
@@ -27,12 +30,13 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
 
             val param = GetProductParam(null, null, 0, 10)
 
             // when
-            val actual =cut.getProducts(param)
+            val actual = cut.getProducts(param)
 
             // then
             assertThat(actual).isEmpty()
@@ -43,7 +47,8 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
 
             val product1 = ProductFixture.`활성 상품 1`.toEntity()
             val product2 = ProductFixture.`활성 상품 2`.toEntity()
@@ -53,7 +58,7 @@ class ProductServiceImplTest {
             val param = GetProductParam(null, null, 0, 10)
 
             // when
-            val actual =cut.getProducts(param)
+            val actual = cut.getProducts(param)
 
             // then
             assertThat(actual).hasSize(2)
@@ -73,34 +78,36 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
 
             // when
-            val actual =cut.getActiveProductInfo(savedProduct.id)
+            val actual = cut.getActiveProductInfo(savedProduct.id)
 
             // then
             assertThat(actual).isNotNull
         }
 
         @Test
-        fun `존재하지 않는 상품 ID로 조회하면 CoreException PRODUCT_NOT_FOUND 예외를 던진다`() {
+        fun `존재하지 않는 상품 ID로 조회하면 CoreException PRODUCT_ITEM_NOT_FOUND 예외를 던진다`() {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
 
             val nonExistentId = 999L
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.getActiveProductInfo(nonExistentId)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(
-                    ErrorType.PRODUCT_NOT_FOUND,
+                    ErrorType.PRODUCT_ITEM_NOT_FOUND,
                     "식별자가 999 에 해당하는 상품 정보를 찾지 못했습니다.",
                 )
         }
@@ -114,7 +121,8 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -125,7 +133,7 @@ class ProductServiceImplTest {
             productLikeCountRepository.save(productLikeCount)
 
             // when
-            val actual =cut.aggregateProductDetail(savedProduct, brand)
+            val actual = cut.aggregateProductDetail(savedProduct, brand)
 
             // then
             assertThat(actual)
@@ -149,7 +157,8 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -157,7 +166,7 @@ class ProductServiceImplTest {
             val brand = BrandFixture.`활성 브랜드`.toEntity()
 
             // when
-            val actual =cut.aggregateProductDetail(savedProduct, brand)
+            val actual = cut.aggregateProductDetail(savedProduct, brand)
 
             // then
             assertThat(actual.likeCount).isEqualTo(LikeCount.ZERO)
@@ -168,7 +177,8 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -179,10 +189,133 @@ class ProductServiceImplTest {
             productLikeCountRepository.save(productLikeCount)
 
             // when
-            val actual =cut.aggregateProductDetail(savedProduct, brand)
+            val actual = cut.aggregateProductDetail(savedProduct, brand)
 
             // then
             assertThat(actual.likeCount).isEqualTo(LikeCount.ZERO)
+        }
+    }
+
+    @Nested
+    inner class `상품 아이템 상세 정보를 조회할 때` {
+
+        @Test
+        fun `존재하는 상품 아이템 ID들로 조회하면 해당 상품 아이템들을 반환한다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val productLikeCountRepository = TestProductLikeCountRepository()
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val savedProduct = productRepository.save(product)
+
+            val productItem1 = ProductItemFixture.`검은색 라지 만원`.toEntity(savedProduct)
+            val productItem2 = ProductItemFixture.`빨간색 라지 만원`.toEntity(savedProduct)
+            val savedProductItem1 = productItemRepository.save(productItem1)
+            val savedProductItem2 = productItemRepository.save(productItem2)
+
+            val productItemIds = listOf(savedProductItem1.id, savedProductItem2.id)
+
+            // when
+            val actual = cut.getProductItemsDetail(productItemIds)
+
+            // then
+            assertThat(actual).hasSize(2)
+                .extracting("name", "price")
+                .containsExactlyInAnyOrder(
+                    Tuple.tuple("검은색 라지", java.math.BigDecimal("10000")),
+                    Tuple.tuple("빨간색 라지", java.math.BigDecimal("10000")),
+                )
+        }
+
+        @Test
+        fun `일부 상품 아이템 ID가 존재하지 않으면 CoreException PRODUCT_ITEM_NOT_FOUND 예외를 던진다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val productLikeCountRepository = TestProductLikeCountRepository()
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val savedProduct = productRepository.save(product)
+
+            val productItem = ProductItemFixture.`검은색 라지 만원`.toEntity(savedProduct)
+            val savedProductItem = productItemRepository.save(productItem)
+
+            val productItemIds = listOf(savedProductItem.id, 999L)
+
+            // when then
+            assertThatThrownBy {
+                cut.getProductItemsDetail(productItemIds)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(
+                    ErrorType.PRODUCT_ITEM_NOT_FOUND,
+                    "일부 상품 아이템을 찾을 수 없습니다.",
+                )
+        }
+    }
+
+    @Nested
+    inner class `상품 아이템 수량을 차감할 때` {
+
+        @Test
+        fun `존재하지 않는 상품 아이템 ID가 포함되면 CoreException PRODUCT_ITEM_NOT_FOUND 예외를 던진다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val productLikeCountRepository = TestProductLikeCountRepository()
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+
+            val param = DeductProductItemsQuantityParam(
+                items = listOf(
+                    DeductProductItemsQuantityParam.DeductItem(999L, 3),
+                ),
+            )
+
+            // when then
+            assertThatThrownBy {
+                cut.deductProductItemsQuantity(param)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(
+                    ErrorType.PRODUCT_ITEM_NOT_FOUND,
+                    "일부 상품 아이템을 찾을 수 없습니다.",
+                )
+        }
+
+        @Test
+        fun `존재하는 상품 아이템들의 수량을 정상적으로 차감한다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val productLikeCountRepository = TestProductLikeCountRepository()
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val savedProduct = productRepository.save(product)
+
+            val savedProductItem1 = productItemRepository.save(ProductItemFixture.`검은색 라지 만원`.toEntity(savedProduct))
+            val savedProductItem2 = productItemRepository.save(ProductItemFixture.`빨간색 라지 만원`.toEntity(savedProduct))
+
+            val param = DeductProductItemsQuantityParam(
+                listOf(
+                    DeductProductItemsQuantityParam.DeductItem(savedProductItem1.id, 3),
+                    DeductProductItemsQuantityParam.DeductItem(savedProductItem2.id, 5),
+                ),
+            )
+
+            // when
+            cut.deductProductItemsQuantity(param)
+
+            // then
+            val actual = productItemRepository.findAllByIds(listOf(savedProductItem1.id, savedProductItem2.id))
+            assertThat(actual).extracting("name", "quantity")
+                .containsExactly(
+                    Tuple.tuple("검은색 라지", 7),
+                    Tuple.tuple("빨간색 라지", 5),
+                )
         }
     }
 }

@@ -25,7 +25,7 @@ class BrandServiceIntegrationTest(
             val savedBrand = jpaBrandRepository.saveAndFlush(brand)
 
             // when
-            val actual =cut.getActiveBrandDetail(savedBrand.id)
+            val actual = cut.getActiveBrandDetail(savedBrand.id)
 
             // then
             assertThat(actual).isNotNull
@@ -38,7 +38,7 @@ class BrandServiceIntegrationTest(
             // given
             val nonExistentId = 999L
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.getActiveBrandDetail(nonExistentId)
             }.isInstanceOf(CoreException::class.java)
@@ -55,7 +55,7 @@ class BrandServiceIntegrationTest(
             val inactiveBrand = BrandFixture.`비활성 브랜드`.toEntity()
             val savedBrand = jpaBrandRepository.saveAndFlush(inactiveBrand)
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.getActiveBrandDetail(savedBrand.id)
             }.isInstanceOf(CoreException::class.java)
@@ -72,7 +72,7 @@ class BrandServiceIntegrationTest(
             val brand = BrandFixture.`활성 브랜드`.toEntity().also(Brand::delete)
             val savedBrand = jpaBrandRepository.saveAndFlush(brand)
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 cut.getActiveBrandDetail(savedBrand.id)
             }.isInstanceOf(CoreException::class.java)

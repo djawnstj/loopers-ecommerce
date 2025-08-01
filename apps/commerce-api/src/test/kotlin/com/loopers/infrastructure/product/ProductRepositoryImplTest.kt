@@ -6,7 +6,6 @@ import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.support.IntegrationTestSupport
 import com.loopers.support.enums.sort.ProductSortType
-import jakarta.persistence.EntityManager
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
@@ -86,7 +85,7 @@ class ProductRepositoryImplTest(
             jpaRepository.saveAllAndFlush(listOf(brand1Product1, brand1Product2, brand2Product1))
 
             // when
-            val actual =cut.findBySortType(brandId = 1L, sortBy = null, offset = 0, limit = 10)
+            val actual = cut.findBySortType(brandId = 1L, sortBy = null, offset = 0, limit = 10)
 
             // then
             assertThat(actual).hasSize(2)
@@ -103,7 +102,7 @@ class ProductRepositoryImplTest(
             jpaRepository.saveAllAndFlush(listOf(brand1Product, brand2Product))
 
             // when
-            val actual =cut.findBySortType(brandId = null, sortBy = null, offset = 0, limit = 10)
+            val actual = cut.findBySortType(brandId = null, sortBy = null, offset = 0, limit = 10)
 
             // then
             assertThat(actual).hasSize(2)
@@ -121,7 +120,7 @@ class ProductRepositoryImplTest(
             jpaRepository.saveAllAndFlush(products)
 
             // when
-            val actual =cut.findBySortType(brandId = null, sortBy = null, offset = 1, limit = 2)
+            val actual = cut.findBySortType(brandId = null, sortBy = null, offset = 1, limit = 2)
 
             // then
             assertThat(actual).hasSize(2)
@@ -137,7 +136,7 @@ class ProductRepositoryImplTest(
             jpaRepository.saveAllAndFlush(listOf(activeProduct, deletedProduct))
 
             // when
-            val actual =cut.findBySortType(brandId = null, sortBy = null, offset = 0, limit = 10)
+            val actual = cut.findBySortType(brandId = null, sortBy = null, offset = 0, limit = 10)
 
             // then
             assertThat(actual).hasSize(1)
@@ -156,7 +155,7 @@ class ProductRepositoryImplTest(
             val savedProduct = jpaRepository.saveAndFlush(product)
 
             // when
-            val actual =cut.findActiveProductById(savedProduct.id)
+            val actual = cut.findActiveProductById(savedProduct.id)
 
             // then
             assertThat(actual).isNotNull
@@ -170,7 +169,7 @@ class ProductRepositoryImplTest(
             val nonExistentId = 999L
 
             // when
-            val actual =cut.findActiveProductById(nonExistentId)
+            val actual = cut.findActiveProductById(nonExistentId)
 
             // then
             assertThat(actual).isNull()
@@ -183,7 +182,7 @@ class ProductRepositoryImplTest(
             val savedProduct = jpaRepository.saveAndFlush(product)
 
             // when
-            val actual =cut.findActiveProductById(savedProduct.id)
+            val actual = cut.findActiveProductById(savedProduct.id)
 
             // then
             assertThat(actual).isNull()

@@ -11,6 +11,7 @@ interface UserPointService {
     fun createInitialPoint(userId: Long): UserPoint
     fun chargePoint(userId: Long, amount: BigDecimal): BigDecimal
     fun getUserPoint(userId: Long): UserPoint
+    fun useUserPoint(userId: Long, amount: BigDecimal)
 }
 
 @Service
@@ -31,10 +32,18 @@ class UserPointServiceImpl(
     }
 
     override fun getUserPoint(userId: Long): UserPoint {
-        val userPoint = (userPointRepository.findByUserId(userId)
-            ?: throw CoreException(ErrorType.USER_POINT_NOT_FOUND, "회원 식별자 $userId 에 해당하는 포인트를 찾지 못했습니다."))
+        val userPoint = (
+            userPointRepository.findByUserId(userId)
+            ?: throw CoreException(ErrorType.USER_POINT_NOT_FOUND, "회원 식별자 $userId 에 해당하는 포인트를 찾지 못했습니다.")
+        )
 
         return userPoint
+    }
+
+    @Transactional
+    override fun useUserPoint(userId: Long, amount: BigDecimal) {
+        val userPoint = getUserPoint(userId)
+        userPoint.deduct(Point(amount))
     }
 
     private fun InitialUserPoint(userId: Long): UserPoint =

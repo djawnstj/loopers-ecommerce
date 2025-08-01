@@ -18,7 +18,7 @@ sealed class ProductFixture(
     data object `활성 상품 2` : ProductFixture(name = "활성상품 2", status = ProductStatusType.ACTIVE)
     data object `비활성 상품` : ProductFixture(name = "비활성상품", status = ProductStatusType.INACTIVE)
 
-    fun toEntity(): Product = Product(brandId, name, saleStartAt, status)
+    fun toEntity(brandId: Long = this.brandId): Product = Product(brandId, name, saleStartAt, status)
 
     companion object {
         fun create(

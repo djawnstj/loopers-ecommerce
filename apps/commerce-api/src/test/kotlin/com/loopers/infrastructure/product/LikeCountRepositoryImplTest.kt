@@ -23,7 +23,7 @@ class LikeCountRepositoryImplTest(
             val savedLikeCount = jpaRepository.saveAndFlush(productLikeCount)
 
             // when
-            val actual =cut.findByProductId(savedLikeCount.productId)
+            val actual = cut.findByProductId(savedLikeCount.productId)
 
             // then
             assertThat(actual).isNotNull
@@ -37,7 +37,7 @@ class LikeCountRepositoryImplTest(
             val nonExistentProductId = 999L
 
             // when
-            val actual =cut.findByProductId(nonExistentProductId)
+            val actual = cut.findByProductId(nonExistentProductId)
 
             // then
             assertThat(actual).isNull()
@@ -50,7 +50,7 @@ class LikeCountRepositoryImplTest(
             val savedLikeCount = jpaRepository.saveAndFlush(productLikeCount)
 
             // when
-            val actual =cut.findByProductId(savedLikeCount.productId)
+            val actual = cut.findByProductId(savedLikeCount.productId)
 
             // then
             assertThat(actual).isNull()

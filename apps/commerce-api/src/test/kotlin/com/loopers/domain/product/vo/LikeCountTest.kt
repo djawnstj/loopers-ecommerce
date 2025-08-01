@@ -41,7 +41,7 @@ class LikeCountTest {
             // given
             val value = -1L
 
-            // when & then
+            // when then
             assertThatThrownBy {
                 LikeCount(value)
             }.isInstanceOf(CoreException::class.java)

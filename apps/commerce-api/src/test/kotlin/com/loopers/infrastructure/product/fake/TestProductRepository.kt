@@ -23,8 +23,8 @@ class TestProductRepository : ProductRepository {
     }
 
     override fun findBySortType(brandId: Long?, sortBy: ProductSortType?, offset: Int, limit: Int): List<Product> {
-        var filtered = products.filter { 
-            it.status == ProductStatusType.ACTIVE && it.deletedAt == null 
+        var filtered = products.filter {
+            it.status == ProductStatusType.ACTIVE && it.deletedAt == null
         }
 
         if (brandId != null) {
@@ -40,8 +40,8 @@ class TestProductRepository : ProductRepository {
     }
 
     override fun findActiveProductById(id: Long): Product? {
-        return products.find { 
-            it.id == id && it.status == ProductStatusType.ACTIVE && it.deletedAt == null 
+        return products.find {
+            it.id == id && it.status == ProductStatusType.ACTIVE && it.deletedAt == null
         }
     }
 }

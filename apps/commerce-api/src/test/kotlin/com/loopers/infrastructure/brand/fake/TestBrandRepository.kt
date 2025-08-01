@@ -18,8 +18,8 @@ class TestBrandRepository : BrandRepository {
     }
 
     override fun findActiveBrandById(id: Long): Brand? {
-        return brands.find { 
-            it.id == id && it.status == BrandStatusType.ACTIVE && it.deletedAt == null 
+        return brands.find {
+            it.id == id && it.status == BrandStatusType.ACTIVE && it.deletedAt == null
         }
     }
 }

@@ -29,4 +29,12 @@ class UserPoint(
             throw CoreException(ErrorType.REQUIRED_POSITIVE_POINT_CHARGE_AMOUNT)
         }
     }
+
+    fun deduct(amount: Point) {
+        if (balance < amount) {
+            throw CoreException(ErrorType.POINT_BALANCE_EXCEEDED)
+        }
+
+        balance -= amount
+    }
 }

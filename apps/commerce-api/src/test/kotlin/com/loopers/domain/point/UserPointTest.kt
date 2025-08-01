@@ -1,7 +1,7 @@
 package com.loopers.domain.point
 
-import com.loopers.fixture.point.UserPointFixture
 import com.loopers.domain.point.vo.Point
+import com.loopers.fixture.point.UserPointFixture
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
 import org.assertj.core.api.Assertions.assertThat
@@ -69,6 +69,61 @@ class UserPointTest {
             // then
             val actual = cut.balance
             assertThat(actual).isEqualTo(Point(BigDecimal(0.1)))
+        }
+    }
+
+    @Nested
+    inner class `포인트를 차감할 때` {
+        @Test
+        fun `잔액보다 많은 포인트를 차감하면 CoreException POINT_BALANCE_EXCEEDED 예외를 던진다`() {
+            // given
+            val cut = UserPointFixture.`500 포인트`.toEntity()
+            val amount = Point(UserPointFixture.`1000 포인트`.balance)
+
+            // when then
+            assertThatThrownBy {
+                cut.deduct(amount)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType")
+                .isEqualTo(ErrorType.POINT_BALANCE_EXCEEDED)
+        }
+
+        @Test
+        fun `잔액과 같은 포인트를 차감할 수 있다`() {
+            // given
+            val cut = UserPointFixture.`1000 포인트`.toEntity()
+            val amount = Point(UserPointFixture.`1000 포인트`.balance)
+
+            // when then
+            assertDoesNotThrow {
+                cut.deduct(amount)
+            }
+        }
+
+        @Test
+        fun `잔액보다 적은 포인트를 차감할 수 있다`() {
+            // given
+            val cut = UserPointFixture.`1000 포인트`.toEntity()
+            val amount = Point(BigDecimal("999.9"))
+
+            // when then
+            assertDoesNotThrow {
+                cut.deduct(amount)
+            }
+        }
+
+        @Test
+        fun `차감 후 잔액은 기존 잔액에서 차감 포인트를 뺀 포인트가 된다`() {
+            // given
+            val cut = UserPointFixture.`1000 포인트`.toEntity()
+            val amount = Point(UserPointFixture.`500 포인트`.balance)
+
+            // when
+            cut.deduct(amount)
+
+            // then
+            val actual = cut.balance
+            assertThat(actual.value).isEqualByComparingTo(BigDecimal("500"))
         }
     }
 }
