@@ -6,6 +6,7 @@ import com.loopers.domain.product.vo.LikeCount
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 interface ProductService {
     fun getProducts(param: GetProductParam): List<Product>
@@ -14,6 +15,7 @@ interface ProductService {
 }
 
 @Service
+@Transactional(readOnly = true)
 class ProductServiceImpl(
     private val productRepository: ProductRepository,
     private val productLikeCountRepository: ProductLikeCountRepository,
