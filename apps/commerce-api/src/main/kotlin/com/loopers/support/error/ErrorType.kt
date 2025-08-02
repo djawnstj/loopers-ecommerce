@@ -38,6 +38,7 @@ enum class ErrorType(val status: HttpStatus, val code: String, val message: Stri
     INVALID_PRICE_VALUE(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "가격은 0 이상이어야 합니다."),
     INVALID_QUANTITY_VALUE(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "수량은 0 이상이어야 합니다."),
     PRODUCT_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "상품 아이템 정보를 찾을 수 없습니다."),
+    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "상품 정보를 찾을 수 없습니다."),
     REQUIRED_ZERO_OR_POSITIVE_PRODUCT_LIKE_COUNT(
         HttpStatus.BAD_REQUEST,
         HttpStatus.BAD_REQUEST.reasonPhrase,

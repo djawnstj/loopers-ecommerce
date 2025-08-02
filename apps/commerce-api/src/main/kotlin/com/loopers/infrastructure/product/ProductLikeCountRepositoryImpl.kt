@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component
 class ProductLikeCountRepositoryImpl(
     private val jpaProductLikeCountRepository: JpaProductLikeCountRepository,
 ) : ProductLikeCountRepository {
+    override fun save(productLikeCount: ProductLikeCount): ProductLikeCount = jpaProductLikeCountRepository.save(productLikeCount)
+
     override fun findByProductId(productId: Long): ProductLikeCount? = jpaProductLikeCountRepository.findAll {
         select(
             entity(ProductLikeCount::class),

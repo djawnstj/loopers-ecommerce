@@ -15,6 +15,8 @@ interface ProductService {
     fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView
     fun getProductItemsDetail(productItemIds: List<Long>): List<ProductItem>
     fun deductProductItemsQuantity(param: DeductProductItemsQuantityParam)
+    fun increaseProductLikeCount(id: Long)
+    fun decreaseProductLikeCount(id: Long)
 }
 
 @Service
@@ -59,5 +61,31 @@ class ProductServiceImpl(
 
             productItem.deduct(deductItem.quantity)
         }
+    }
+
+    @Transactional
+    override fun increaseProductLikeCount(id: Long) {
+        val product = productRepository.findActiveProductById(id) ?: throw CoreException(
+            ErrorType.PRODUCT_NOT_FOUND,
+            "식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.",
+        )
+
+        val productLikeCount = productLikeCountRepository.findByProductId(product.id)
+            ?: productLikeCountRepository.save(ProductLikeCount(id, 0))
+
+        productLikeCount.increase()
+    }
+
+    @Transactional
+    override fun decreaseProductLikeCount(id: Long) {
+        val product = productRepository.findActiveProductById(id) ?: throw CoreException(
+            ErrorType.PRODUCT_NOT_FOUND,
+            "식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.",
+        )
+
+        val productLikeCount = productLikeCountRepository.findByProductId(product.id)
+            ?: productLikeCountRepository.save(ProductLikeCount(id, 0))
+
+        productLikeCount.decrease()
     }
 }

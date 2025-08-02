@@ -12,6 +12,9 @@ import com.loopers.infrastructure.brand.JpaBrandRepository
 import com.loopers.infrastructure.product.JpaProductItemRepository
 import com.loopers.infrastructure.product.JpaProductLikeCountRepository
 import com.loopers.infrastructure.product.JpaProductRepository
+import com.loopers.infrastructure.product.fake.TestProductItemRepository
+import com.loopers.infrastructure.product.fake.TestProductLikeCountRepository
+import com.loopers.infrastructure.product.fake.TestProductRepository
 import com.loopers.support.IntegrationTestSupport
 import com.loopers.support.enums.sort.ProductSortType
 import com.loopers.support.error.CoreException
@@ -21,6 +24,8 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertAll
+import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 
 class ProductServiceIntegrationTest(
@@ -372,6 +377,72 @@ class ProductServiceIntegrationTest(
                     Tuple.tuple("검은색 라지", 7),
                     Tuple.tuple("빨간색 라지", 5),
                 )
+        }
+    }
+
+    @Nested
+    inner class `상품 좋아요 수를 증가시킬 때` {
+
+        @Test
+        fun `기존 좋아요 수가 있으면 1 증가시킨다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
+            jpaProductLikeCountRepository.save(productLikeCount)
+
+            // when
+            cut.increaseProductLikeCount(product.id)
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual?.count?.value).isEqualTo(11L)
+        }
+
+        @Test
+        fun `좋아요 수가 없으면 새로 생성하여 증가시킨다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+
+            // when
+            cut.increaseProductLikeCount(product.id)
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual?.count?.value).isEqualTo(1L)
+        }
+    }
+
+    @Nested
+    inner class `상품 좋아요 수를 차감시킬 때` {
+
+        @Test
+        fun `기존 좋아요 수가 있으면 1 차감시킨다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
+            jpaProductLikeCountRepository.save(productLikeCount)
+
+            // when
+            cut.decreaseProductLikeCount(product.id)
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual?.count?.value).isEqualTo(9L)
+        }
+
+        @Test
+        fun `좋아요 수가 없으면 새로 생성하여 차감시킨다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+
+            // when
+            cut.decreaseProductLikeCount(product.id)
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual?.count?.value).isEqualTo(0L)
         }
     }
 }
