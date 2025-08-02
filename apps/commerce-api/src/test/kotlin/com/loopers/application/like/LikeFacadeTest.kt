@@ -1,15 +1,19 @@
 package com.loopers.application.like
 
 import com.loopers.application.common.SimpleLockManager
-import com.loopers.application.like.command.CreateLikeCommand
-import com.loopers.application.like.command.DeleteLikeCommand
+import com.loopers.application.like.command.CreateProductLikeCommand
+import com.loopers.application.like.command.DeleteProductLikeCommand
 import com.loopers.domain.like.LikeServiceImpl
 import com.loopers.domain.like.vo.TargetType
+import com.loopers.domain.product.fake.TestProductService
 import com.loopers.domain.user.fake.TestUserService
+import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.user.UserFixture
 import com.loopers.infrastructure.like.fake.TestLikeRepository
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
+import io.mockk.spyk
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.api.Assertions.tuple
@@ -30,10 +34,11 @@ class LikeFacadeTest {
             val likeRepository = TestLikeRepository()
             val likeService = LikeServiceImpl(likeRepository)
             val userService = TestUserService()
+            val productService = TestProductService()
             val lockManager = SimpleLockManager()
-            val cut = LikeFacade(likeService, userService, lockManager)
+            val cut = LikeFacade(likeService, userService, productService, lockManager)
 
-            val command = CreateLikeCommand(
+            val command = CreateProductLikeCommand(
                 loginId = "nonexistent",
                 targetId = 1L,
                 target = TargetType.PRODUCT,
@@ -41,7 +46,7 @@ class LikeFacadeTest {
 
             // when then
             assertThatThrownBy {
-                cut.createLike(command)
+                cut.createProductLike(command)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(
@@ -56,26 +61,29 @@ class LikeFacadeTest {
             val likeRepository = TestLikeRepository()
             val likeService = LikeServiceImpl(likeRepository)
             val userService = TestUserService()
+            val productService = TestProductService()
             val lockManager = SimpleLockManager()
-            val cut = LikeFacade(likeService, userService, lockManager)
+            val cut = LikeFacade(likeService, userService, productService, lockManager)
 
             val user = UserFixture.기본.toEntity()
             userService.addUsers(listOf(user))
+            val product = ProductFixture.기본.toEntity()
+            productService.addProducts(listOf(product))
 
-            val command = CreateLikeCommand(
+            val command = CreateProductLikeCommand(
                 loginId = "loginId",
-                targetId = 1L,
+                targetId = product.id,
                 target = TargetType.PRODUCT,
             )
 
             // when
-            cut.createLike(command)
+            cut.createProductLike(command)
 
             // then
             val actual = likeRepository.findAll()
             assertThat(actual).hasSize(1)
                 .extracting("userId", "targetId", "target")
-                .containsExactly(tuple(user.id, 1L, TargetType.PRODUCT))
+                .containsExactly(tuple(user.id, product.id, TargetType.PRODUCT))
         }
 
         @Test
@@ -84,15 +92,18 @@ class LikeFacadeTest {
             val likeRepository = TestLikeRepository()
             val likeService = LikeServiceImpl(likeRepository)
             val userService = TestUserService()
+            val productService = TestProductService()
             val lockManager = SimpleLockManager()
-            val cut = LikeFacade(likeService, userService, lockManager)
+            val cut = LikeFacade(likeService, userService, productService, lockManager)
 
             val user = UserFixture.기본.toEntity()
             userService.addUsers(listOf(user))
+            val product = ProductFixture.기본.toEntity()
+            productService.addProducts(listOf(product))
 
-            val command = CreateLikeCommand(
+            val command = CreateProductLikeCommand(
                 loginId = "loginId",
-                targetId = 1L,
+                targetId = product.id,
                 target = TargetType.PRODUCT,
             )
 
@@ -106,7 +117,7 @@ class LikeFacadeTest {
                 executor.submit {
                     try {
                         startLatch.await()
-                        cut.createLike(command)
+                        cut.createProductLike(command)
                     } finally {
                         endLatch.countDown()
                     }
@@ -121,6 +132,35 @@ class LikeFacadeTest {
             assertThat(actual).hasSize(1)
             executor.shutdown()
         }
+
+        @Test
+        fun `좋아요를 생성 하면 상품 좋아요 수를 증가한다`() {
+            // given
+            val likeRepository = TestLikeRepository()
+            val likeService = LikeServiceImpl(likeRepository)
+            val userService = TestUserService()
+            val testProductService = TestProductService()
+            val productService = spyk(testProductService)
+            val lockManager = SimpleLockManager()
+            val cut = LikeFacade(likeService, userService, productService, lockManager)
+
+            val user = UserFixture.기본.toEntity()
+            userService.addUsers(listOf(user))
+            val product = ProductFixture.기본.toEntity()
+            testProductService.addProducts(listOf(product))
+
+            val command = CreateProductLikeCommand(
+                loginId = "loginId",
+                targetId = product.id,
+                target = TargetType.PRODUCT,
+            )
+
+            // when
+            cut.createProductLike(command)
+
+            // then
+            verify { productService.increaseProductLikeCount(0L) }
+        }
     }
 
     @Nested
@@ -132,10 +172,11 @@ class LikeFacadeTest {
             val likeRepository = TestLikeRepository()
             val likeService = LikeServiceImpl(likeRepository)
             val userService = TestUserService()
+            val productService = TestProductService()
             val lockManager = SimpleLockManager()
-            val cut = LikeFacade(likeService, userService, lockManager)
+            val cut = LikeFacade(likeService, userService, productService, lockManager)
 
-            val command = DeleteLikeCommand(
+            val command = DeleteProductLikeCommand(
                 loginId = "nonexistent",
                 targetId = 1L,
                 target = TargetType.PRODUCT,
@@ -143,7 +184,7 @@ class LikeFacadeTest {
 
             // when then
             assertThatThrownBy {
-                cut.deleteLike(command)
+                cut.deleteProductLike(command)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(
@@ -158,24 +199,56 @@ class LikeFacadeTest {
             val likeRepository = TestLikeRepository()
             val likeService = LikeServiceImpl(likeRepository)
             val userService = TestUserService()
+            val productService = TestProductService()
             val lockManager = SimpleLockManager()
-            val cut = LikeFacade(likeService, userService, lockManager)
+            val cut = LikeFacade(likeService, userService, productService, lockManager)
 
             val user = UserFixture.기본.toEntity()
             userService.addUsers(listOf(user))
+            val product = ProductFixture.기본.toEntity()
+            productService.addProducts(listOf(product))
 
-            val command = DeleteLikeCommand(
+            val command = DeleteProductLikeCommand(
                 loginId = "loginId",
-                targetId = 1L,
+                targetId = product.id,
                 target = TargetType.PRODUCT,
             )
 
             // when
-            cut.deleteLike(command)
+            cut.deleteProductLike(command)
 
             // then
             val actual = likeRepository.findAll()
             assertThat(actual).isEmpty()
+        }
+
+        @Test
+        fun `좋아요를 생성 하면 상품 좋아요 수를 증가한다`() {
+            // given
+            val likeRepository = TestLikeRepository()
+            val likeService = LikeServiceImpl(likeRepository)
+            val userService = TestUserService()
+            val testProductService = TestProductService()
+            val productService = spyk(testProductService)
+            val lockManager = SimpleLockManager()
+            val cut = LikeFacade(likeService, userService, productService, lockManager)
+
+            val user = UserFixture.기본.toEntity()
+            userService.addUsers(listOf(user))
+            val product = ProductFixture.기본.toEntity()
+            testProductService.addProducts(listOf(product))
+
+            val command = DeleteProductLikeCommand(
+                loginId = "loginId",
+                targetId = product.id,
+                target = TargetType.PRODUCT,
+            )
+
+            // when
+            cut.deleteProductLike(command)
+
+            // then
+            verify { productService.decreaseProductLikeCount(product.id) }
         }
     }
 }

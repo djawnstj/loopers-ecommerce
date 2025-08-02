@@ -1,24 +1,30 @@
 package com.loopers.application.like
 
-import com.loopers.application.like.command.CreateLikeCommand
-import com.loopers.application.like.command.DeleteLikeCommand
+import com.loopers.application.like.command.CreateProductLikeCommand
+import com.loopers.application.like.command.DeleteProductLikeCommand
 import com.loopers.domain.like.vo.TargetType
+import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.user.UserFixture
 import com.loopers.infrastructure.like.JpaLikeRepository
+import com.loopers.infrastructure.product.JpaProductLikeCountRepository
+import com.loopers.infrastructure.product.JpaProductRepository
 import com.loopers.infrastructure.user.JpaUserRepository
 import com.loopers.support.IntegrationTestSupport
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple.tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.data.repository.findByIdOrNull
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class LikeFacadeIntegrationTest(
     private val cut: LikeFacade,
+    private val jpaProductRepository: JpaProductRepository,
     private val jpaLikeRepository: JpaLikeRepository,
     private val jpaUserRepository: JpaUserRepository,
+    private val jpaProductLikeCountRepository: JpaProductLikeCountRepository,
 ) : IntegrationTestSupport() {
 
     @Nested
@@ -28,14 +34,16 @@ class LikeFacadeIntegrationTest(
         fun `사용자가 존재하고 중복이 아니면 좋아요를 저장한다`() {
             // given
             val user = jpaUserRepository.saveAndFlush(UserFixture.기본.toEntity())
-            val command = CreateLikeCommand(
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+
+            val command = CreateProductLikeCommand(
                 loginId = user.loginId.value,
-                targetId = 1L,
+                targetId = product.id,
                 target = TargetType.PRODUCT,
             )
 
             // when
-            cut.createLike(command)
+            cut.createProductLike(command)
 
             // then
             val actual = jpaLikeRepository.findAll()
@@ -48,15 +56,17 @@ class LikeFacadeIntegrationTest(
         fun `동일한 좋아요가 이미 존재하면 중복 저장하지 않는다`() {
             // given
             val user = jpaUserRepository.saveAndFlush(UserFixture.기본.toEntity())
-            val command = CreateLikeCommand(
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+
+            val command = CreateProductLikeCommand(
                 loginId = user.loginId.value,
-                targetId = 1L,
+                targetId = product.id,
                 target = TargetType.PRODUCT,
             )
 
             // when
-            cut.createLike(command)
-            cut.createLike(command)
+            cut.createProductLike(command)
+            cut.createProductLike(command)
 
             // then
             val actual = jpaLikeRepository.findAll()
@@ -68,21 +78,22 @@ class LikeFacadeIntegrationTest(
             // given
             val user1 = jpaUserRepository.saveAndFlush(UserFixture.`로그인 ID 1`.toEntity())
             val user2 = jpaUserRepository.saveAndFlush(UserFixture.`로그인 ID 2`.toEntity())
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
 
-            val command1 = CreateLikeCommand(
+            val command1 = CreateProductLikeCommand(
                 loginId = user1.loginId.value,
-                targetId = 1L,
+                targetId = product.id,
                 target = TargetType.PRODUCT,
             )
-            val command2 = CreateLikeCommand(
+            val command2 = CreateProductLikeCommand(
                 loginId = user2.loginId.value,
-                targetId = 1L,
+                targetId = product.id,
                 target = TargetType.PRODUCT,
             )
 
             // when
-            cut.createLike(command1)
-            cut.createLike(command2)
+            cut.createProductLike(command1)
+            cut.createProductLike(command2)
 
             // then
             val actual = jpaLikeRepository.findAll()
@@ -98,20 +109,23 @@ class LikeFacadeIntegrationTest(
         fun `같은 사용자의 다른 타겟에 대한 좋아요는 독립적으로 저장된다`() {
             // given
             val user = jpaUserRepository.saveAndFlush(UserFixture.기본.toEntity())
-            val command1 = CreateLikeCommand(
+            val product1 = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+            val product2 = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+
+            val command1 = CreateProductLikeCommand(
                 loginId = user.loginId.value,
-                targetId = 1L,
+                targetId = product1.id,
                 target = TargetType.PRODUCT,
             )
-            val command2 = CreateLikeCommand(
+            val command2 = CreateProductLikeCommand(
                 loginId = user.loginId.value,
-                targetId = 2L,
+                targetId = product2.id,
                 target = TargetType.PRODUCT,
             )
 
             // when
-            cut.createLike(command1)
-            cut.createLike(command2)
+            cut.createProductLike(command1)
+            cut.createProductLike(command2)
 
             // then
             val actual = jpaLikeRepository.findAll()
@@ -127,9 +141,11 @@ class LikeFacadeIntegrationTest(
         fun `동시에 같은 키로 요청해도 락으로 인해 중복 저장되지 않는다`() {
             // given
             val user = jpaUserRepository.saveAndFlush(UserFixture.기본.toEntity())
-            val command = CreateLikeCommand(
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+
+            val command = CreateProductLikeCommand(
                 loginId = user.loginId.value,
-                targetId = 1L,
+                targetId = product.id,
                 target = TargetType.PRODUCT,
             )
 
@@ -143,7 +159,7 @@ class LikeFacadeIntegrationTest(
                 executor.submit {
                     try {
                         startLatch.await()
-                        cut.createLike(command)
+                        cut.createProductLike(command)
                     } finally {
                         endLatch.countDown()
                     }
@@ -159,6 +175,27 @@ class LikeFacadeIntegrationTest(
 
             executor.shutdown()
         }
+
+        @Test
+        fun `좋아요를 생성 하면 상품 좋아요 수를 증가한다`() {
+            // given
+            val user = jpaUserRepository.saveAndFlush(UserFixture.기본.toEntity())
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+
+            val command = CreateProductLikeCommand(
+                loginId = user.loginId.value,
+                targetId = product.id,
+            )
+
+            // when
+            cut.createProductLike(command)
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual)
+                .extracting("productId", "count")
+                .containsExactly(product.id, 1L)
+        }
     }
 
     @Nested
@@ -168,18 +205,40 @@ class LikeFacadeIntegrationTest(
         fun `사용자가 존재하고 중복이 아니면 좋아요를 삭제한다`() {
             // given
             val user = jpaUserRepository.saveAndFlush(UserFixture.기본.toEntity())
-            val command = DeleteLikeCommand(
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+
+            val command = DeleteProductLikeCommand(
                 loginId = user.loginId.value,
-                targetId = 1L,
-                target = TargetType.PRODUCT,
+                targetId = product.id,
             )
 
             // when
-            cut.deleteLike(command)
+            cut.deleteProductLike(command)
 
             // then
             val actual = jpaLikeRepository.findAll()
             assertThat(actual).isEmpty()
+        }
+
+        @Test
+        fun `좋아요를 삭제 하면 상품 좋아요 수를 차감한다`() {
+            // given
+            val user = jpaUserRepository.saveAndFlush(UserFixture.기본.toEntity())
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+
+            val command = DeleteProductLikeCommand(
+                loginId = user.loginId.value,
+                targetId = product.id,
+            )
+
+            // when
+            cut.deleteProductLike(command)
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual)
+                .extracting("productId", "count")
+                .containsExactly(product.id, 0L)
         }
     }
 }
