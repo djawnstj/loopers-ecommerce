@@ -93,4 +93,28 @@ class TestProductService : ProductService {
             productItem.deduct(deductItem.quantity)
         }
     }
+
+    override fun increaseProductLikeCount(id: Long) {
+        val product = getActiveProductInfo(id)
+
+        val productLikeCount = likeCountMap[product.id]
+        if (productLikeCount != null) {
+            productLikeCount.increase()
+        } else {
+            val newProductLikeCount = ProductLikeCount(product.id, 1L)
+            likeCountMap[product.id] = newProductLikeCount
+        }
+    }
+
+    override fun decreaseProductLikeCount(id: Long) {
+        val product = getActiveProductInfo(id)
+
+        val productLikeCount = likeCountMap[product.id]
+        if (productLikeCount != null) {
+            productLikeCount.decrease()
+        } else {
+            val newProductLikeCount = ProductLikeCount(product.id, 0L)
+            likeCountMap[product.id] = newProductLikeCount
+        }
+    }
 }

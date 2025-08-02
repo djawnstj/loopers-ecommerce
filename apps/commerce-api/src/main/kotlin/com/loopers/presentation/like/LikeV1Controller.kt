@@ -1,8 +1,8 @@
 package com.loopers.presentation.like
 
 import com.loopers.application.like.LikeFacade
-import com.loopers.application.like.command.CreateLikeCommand
-import com.loopers.application.like.command.DeleteLikeCommand
+import com.loopers.application.like.command.CreateProductLikeCommand
+import com.loopers.application.like.command.DeleteProductLikeCommand
 import com.loopers.domain.like.vo.TargetType
 import com.loopers.presentation.auth.LoginId
 import com.loopers.presentation.like.dto.CreateProductLikeResponse
@@ -23,7 +23,7 @@ class LikeV1Controller(
         @LoginId loginId: String,
         @PathVariable productId: Long,
     ): ApiResponse<CreateProductLikeResponse> {
-        likeFacade.createLike(CreateLikeCommand(loginId, productId, TargetType.PRODUCT))
+        likeFacade.createProductLike(CreateProductLikeCommand(loginId, productId, TargetType.PRODUCT))
         return ApiResponse.success(CreateProductLikeResponse())
     }
 
@@ -32,7 +32,7 @@ class LikeV1Controller(
         @LoginId loginId: String,
         @PathVariable productId: Long,
     ): ApiResponse<DeleteProductLikeResponse> {
-        likeFacade.deleteLike(DeleteLikeCommand(loginId, productId, TargetType.PRODUCT))
+        likeFacade.deleteProductLike(DeleteProductLikeCommand(loginId, productId, TargetType.PRODUCT))
         return ApiResponse.success(DeleteProductLikeResponse())
     }
 }

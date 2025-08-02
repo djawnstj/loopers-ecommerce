@@ -16,6 +16,17 @@ class ProductLikeCount private constructor(
     var count: LikeCount = count
         protected set
 
+    fun increase() {
+        count++
+    }
+
+    fun decrease() {
+        if (count.isZero()) {
+            return
+        }
+        count--
+    }
+
     companion object {
         operator fun invoke(productId: Long, count: Long): ProductLikeCount =
             ProductLikeCount(productId, LikeCount(count))

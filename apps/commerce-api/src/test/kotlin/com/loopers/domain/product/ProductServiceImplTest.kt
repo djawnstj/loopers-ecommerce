@@ -18,6 +18,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertAll
 import java.time.LocalDateTime
 
 class ProductServiceImplTest {
@@ -316,6 +317,132 @@ class ProductServiceImplTest {
                     Tuple.tuple("검은색 라지", 7),
                     Tuple.tuple("빨간색 라지", 5),
                 )
+        }
+    }
+
+    @Nested
+    inner class `상품 좋아요 수를 증가시킬 때` {
+
+        @Test
+        fun `좋아요 대상이 되는 상품이 없다면 CoreException PRODUCT_NOT_FOUND 예외를 던진다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val productLikeCountRepository = TestProductLikeCountRepository()
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+
+            // when then
+            assertThatThrownBy {
+                cut.increaseProductLikeCount(1L)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(ErrorType.PRODUCT_NOT_FOUND, "식별자가 1 에 해당하는 상품 정보를 찾지 못했습니다.")
+        }
+
+        @Test
+        fun `기존 좋아요 수가 있으면 1 증가시킨다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val productLikeCountRepository = TestProductLikeCountRepository()
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val savedProduct = productRepository.save(product)
+
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity()
+            productLikeCountRepository.save(productLikeCount)
+
+            // when
+            cut.increaseProductLikeCount(savedProduct.id)
+
+            // then
+            assertThat(productLikeCount.count.value).isEqualTo(11L)
+        }
+
+        @Test
+        fun `좋아요 수가 없으면 새로 생성하여 1로 설정한다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val productLikeCountRepository = TestProductLikeCountRepository()
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val savedProduct = productRepository.save(product)
+
+            // when
+            cut.increaseProductLikeCount(savedProduct.id)
+
+            // then
+            val actual = productLikeCountRepository.findByProductId(savedProduct.id)!!
+            assertAll(
+                { assertThat(actual.count.value).isEqualTo(1L) },
+                { assertThat(actual.productId).isEqualTo(savedProduct.id) },
+            )
+        }
+    }
+
+    @Nested
+    inner class `상품 좋아요 수를 차감시킬 때` {
+
+        @Test
+        fun `좋아요 대상이 되는 상품이 없다면 CoreException PRODUCT_NOT_FOUND 예외를 던진다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val productLikeCountRepository = TestProductLikeCountRepository()
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+
+            // when then
+            assertThatThrownBy {
+                cut.decreaseProductLikeCount(1L)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType", "message")
+                .containsExactly(ErrorType.PRODUCT_NOT_FOUND, "식별자가 1 에 해당하는 상품 정보를 찾지 못했습니다.")
+        }
+
+        @Test
+        fun `기존 좋아요 수가 있으면 1 차감시킨다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val productLikeCountRepository = TestProductLikeCountRepository()
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val savedProduct = productRepository.save(product)
+
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity()
+            productLikeCountRepository.save(productLikeCount)
+
+            // when
+            cut.decreaseProductLikeCount(savedProduct.id)
+
+            // then
+            assertThat(productLikeCount.count.value).isEqualTo(9L)
+        }
+
+        @Test
+        fun `좋아요 수가 없으면 새로 생성하여 0으로 설정한다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val productLikeCountRepository = TestProductLikeCountRepository()
+            val productItemRepository = TestProductItemRepository()
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val savedProduct = productRepository.save(product)
+
+            // when
+            cut.decreaseProductLikeCount(savedProduct.id)
+
+            // then
+            val actual = productLikeCountRepository.findByProductId(savedProduct.id)!!
+            assertAll(
+                { assertThat(actual.count.value).isEqualTo(0L) },
+                { assertThat(actual.productId).isEqualTo(savedProduct.id) },
+            )
         }
     }
 }

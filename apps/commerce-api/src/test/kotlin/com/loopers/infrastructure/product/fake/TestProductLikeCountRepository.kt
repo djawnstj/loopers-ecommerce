@@ -7,7 +7,7 @@ class TestProductLikeCountRepository : ProductLikeCountRepository {
     private val likeCountMap = mutableMapOf<Long, ProductLikeCount>()
     private var nextId = 1L
 
-    fun save(productLikeCount: ProductLikeCount): ProductLikeCount {
+    override fun save(productLikeCount: ProductLikeCount): ProductLikeCount {
         val idField = productLikeCount.javaClass.superclass.getDeclaredField("id")
         idField.isAccessible = true
         idField.set(productLikeCount, nextId++)
