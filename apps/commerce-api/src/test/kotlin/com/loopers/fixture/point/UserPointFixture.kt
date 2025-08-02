@@ -1,7 +1,7 @@
 package com.loopers.fixture.point
 
-import com.loopers.point.domain.UserPoint
-import com.loopers.point.domain.vo.Point
+import com.loopers.domain.point.UserPoint
+import com.loopers.domain.point.vo.Point
 import java.math.BigDecimal
 
 sealed class UserPointFixture(
@@ -11,6 +11,7 @@ sealed class UserPointFixture(
     data object `기본` : UserPointFixture()
     data object `0 포인트` : UserPointFixture()
     data object `1 포인트` : UserPointFixture(balance = BigDecimal.ONE)
+    data object `500 포인트` : UserPointFixture(balance = BigDecimal(500))
     data object `1000 포인트` : UserPointFixture(balance = BigDecimal(1000))
     data object `음수 포인트` : UserPointFixture(balance = BigDecimal(-0.1))
     data object `양수 포인트` : UserPointFixture(balance = BigDecimal(0.1))
