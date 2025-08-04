@@ -12,9 +12,6 @@ import com.loopers.infrastructure.brand.JpaBrandRepository
 import com.loopers.infrastructure.product.JpaProductItemRepository
 import com.loopers.infrastructure.product.JpaProductLikeCountRepository
 import com.loopers.infrastructure.product.JpaProductRepository
-import com.loopers.infrastructure.product.fake.TestProductItemRepository
-import com.loopers.infrastructure.product.fake.TestProductLikeCountRepository
-import com.loopers.infrastructure.product.fake.TestProductRepository
 import com.loopers.support.IntegrationTestSupport
 import com.loopers.support.enums.sort.ProductSortType
 import com.loopers.support.error.CoreException
@@ -24,9 +21,11 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertAll
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.orm.ObjectOptimisticLockingFailureException
 import java.time.LocalDateTime
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 
 class ProductServiceIntegrationTest(
     private val cut: ProductService,
@@ -411,6 +410,54 @@ class ProductServiceIntegrationTest(
             val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
             assertThat(actual?.count?.value).isEqualTo(1L)
         }
+
+        @Test
+        fun `좋아요 수를 증가시키면 낙관적 락 버전이 증가한다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
+            val savedLikeCount = jpaProductLikeCountRepository.save(productLikeCount)
+            val originalVersion = savedLikeCount.version
+
+            // when
+            cut.increaseProductLikeCount(product.id)
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual?.version).isEqualTo(originalVersion + 1)
+        }
+
+        @Test
+        fun `동시에 같은 상품의 좋아요 수를 증가시키면 낙관적 락 예외가 발생한다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
+            jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
+
+            val threadCount = 2
+            val executor = Executors.newFixedThreadPool(threadCount)
+            val latch = CountDownLatch(threadCount)
+            val exceptions = mutableListOf<Exception>()
+
+            // when
+            repeat(threadCount) {
+                executor.submit {
+                    try {
+                        cut.increaseProductLikeCount(product.id)
+                    } catch (e: Exception) {
+                        exceptions.add(e)
+                    } finally {
+                        latch.countDown()
+                    }
+                }
+            }
+
+            latch.await()
+            executor.shutdown()
+
+            // then
+            assertThat(exceptions).anyMatch { it is ObjectOptimisticLockingFailureException }
+        }
     }
 
     @Nested
@@ -443,6 +490,54 @@ class ProductServiceIntegrationTest(
             // then
             val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
             assertThat(actual?.count?.value).isEqualTo(0L)
+        }
+
+        @Test
+        fun `좋아요 수를 차감시키면 낙관적 락 버전이 증가한다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
+            val savedLikeCount = jpaProductLikeCountRepository.save(productLikeCount)
+            val originalVersion = savedLikeCount.version
+
+            // when
+            cut.decreaseProductLikeCount(product.id)
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual?.version).isEqualTo(originalVersion + 1)
+        }
+
+        @Test
+        fun `동시에 같은 상품의 좋아요 수를 차감시키면 낙관적 락 예외가 발생한다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
+            jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
+
+            val threadCount = 2
+            val executor = Executors.newFixedThreadPool(threadCount)
+            val latch = CountDownLatch(threadCount)
+            val exceptions = mutableListOf<Exception>()
+
+            // when
+            repeat(threadCount) {
+                executor.submit {
+                    try {
+                        cut.decreaseProductLikeCount(product.id)
+                    } catch (e: Exception) {
+                        exceptions.add(e)
+                    } finally {
+                        latch.countDown()
+                    }
+                }
+            }
+
+            latch.await()
+            executor.shutdown()
+
+            // then
+            assertThat(exceptions).anyMatch { it is ObjectOptimisticLockingFailureException }
         }
     }
 }
