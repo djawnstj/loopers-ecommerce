@@ -1,4 +1,4 @@
-package com.loopers.presentation.order
+package com.loopers.presentation.order.dto
 
 import com.loopers.application.order.command.CreateOrderCommand
 
