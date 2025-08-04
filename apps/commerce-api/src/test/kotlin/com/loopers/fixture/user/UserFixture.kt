@@ -1,7 +1,7 @@
 package com.loopers.fixture.user
 
-import com.loopers.user.domain.User
-import com.loopers.user.domain.vo.GenderType
+import com.loopers.domain.user.User
+import com.loopers.domain.user.vo.GenderType
 
 sealed class UserFixture(
     val loginId: String = "loginId",
@@ -10,6 +10,8 @@ sealed class UserFixture(
     val gender: GenderType = GenderType.MEN,
 ) {
     data object 기본 : UserFixture()
+    data object `로그인 ID 1` : UserFixture(loginId = "loginId1")
+    data object `로그인 ID 2` : UserFixture(loginId = "loginId2")
 
     data object `잘못된 형식의 생년월일` : UserFixture(birthDay = "20241231")
 

@@ -29,6 +29,26 @@ enum class ErrorType(val status: HttpStatus, val code: String, val message: Stri
     // UserPoint
     REQUIRED_ZERO_OR_POSITIVE_POINT(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "포인트는 0 이상이어야 합니다."),
     REQUIRED_POSITIVE_POINT_CHARGE_AMOUNT(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "포인트 충전은 0 보다 커야합니다."),
+    POINT_BALANCE_EXCEEDED(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "사용 가능한 포인트를 초과했습니다."),
+
+    // Brand
+    BRAND_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "브랜드 정보를 찾을 수 없습니다."),
+
+    // Product
+    INVALID_PRICE_VALUE(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "가격은 0 이상이어야 합니다."),
+    INVALID_QUANTITY_VALUE(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "수량은 0 이상이어야 합니다."),
+    PRODUCT_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "상품 아이템 정보를 찾을 수 없습니다."),
+    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "상품 정보를 찾을 수 없습니다."),
+    REQUIRED_ZERO_OR_POSITIVE_PRODUCT_LIKE_COUNT(
+        HttpStatus.BAD_REQUEST,
+        HttpStatus.BAD_REQUEST.reasonPhrase,
+        "상품 좋아요는 0 이상이어야 합니다.",
+    ),
+    INSUFFICIENT_PRODUCT_QUANTITY(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "상품 재고가 부족합니다."),
+
+    // Order
+    INVALID_MONEY_VALUE(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "가격은 0 이상이어야 합니다."),
+    REQUIRED_NOT_EMPTY_ORDER_ITEMS(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "주문 시 주문 아이템은 1개 이상이어야 합니다."),
 
     /** 범용 에러 */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase, "일시적인 오류가 발생했습니다."),
