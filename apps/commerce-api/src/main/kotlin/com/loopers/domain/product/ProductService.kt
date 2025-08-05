@@ -40,7 +40,7 @@ class ProductServiceImpl(
         )
 
     override fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView {
-        val productLikeCount = productLikeCountRepository.findByProductId(productDetail.id)?.count ?: LikeCount.ZERO
+        val productLikeCount = productLikeCountRepository.findByProductIdWithOptimisticLock(productDetail.id)?.count ?: LikeCount.ZERO
 
         return ProductDetailView(productDetail, brandDetail, productLikeCount)
     }
@@ -80,7 +80,7 @@ class ProductServiceImpl(
             "식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.",
         )
 
-        val productLikeCount = productLikeCountRepository.findByProductId(product.id)
+        val productLikeCount = productLikeCountRepository.findByProductIdWithOptimisticLock(product.id)
             ?: productLikeCountRepository.save(ProductLikeCount(id, 0))
 
         productLikeCount.increase()
@@ -99,7 +99,7 @@ class ProductServiceImpl(
             "식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.",
         )
 
-        val productLikeCount = productLikeCountRepository.findByProductId(product.id)
+        val productLikeCount = productLikeCountRepository.findByProductIdWithOptimisticLock(product.id)
             ?: productLikeCountRepository.save(ProductLikeCount(id, 0))
 
         productLikeCount.decrease()
