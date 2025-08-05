@@ -28,7 +28,6 @@ interface ProductService {
 class ProductServiceImpl(
     private val productRepository: ProductRepository,
     private val productLikeCountRepository: ProductLikeCountRepository,
-    private val productItemRepository: ProductItemRepository,
 ) : ProductService {
     override fun getProducts(param: GetProductParam): List<Product> =
         productRepository.findBySortType(param.brandId, param.sortType, param.page, param.perPage)
@@ -40,13 +39,14 @@ class ProductServiceImpl(
         )
 
     override fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView {
-        val productLikeCount = productLikeCountRepository.findByProductIdWithOptimisticLock(productDetail.id)?.count ?: LikeCount.ZERO
+        val productLikeCount =
+            productLikeCountRepository.findByProductIdWithOptimisticLock(productDetail.id)?.count ?: LikeCount.ZERO
 
         return ProductDetailView(productDetail, brandDetail, productLikeCount)
     }
 
     override fun getProductItemsDetail(productItemIds: List<Long>): List<ProductItem> {
-        val productItems = productItemRepository.findAllByIds(productItemIds)
+        val productItems = productRepository.findProductItemsByIds(productItemIds)
 
         if (productItems.size != productItemIds.size) {
             throw CoreException(ErrorType.PRODUCT_ITEM_NOT_FOUND, "일부 상품 아이템을 찾을 수 없습니다.")
@@ -72,7 +72,7 @@ class ProductServiceImpl(
         value = [OptimisticLockingFailureException::class],
         maxAttempts = 3,
         backoff = Backoff(delay = 500, multiplier = 1.5),
-        recover = "recoverIncreaseProductLikeCount"
+        recover = "recoverIncreaseProductLikeCount",
     )
     override fun increaseProductLikeCount(id: Long) {
         val product = productRepository.findActiveProductById(id) ?: throw CoreException(
@@ -91,7 +91,7 @@ class ProductServiceImpl(
         value = [OptimisticLockingFailureException::class],
         maxAttempts = 3,
         backoff = Backoff(delay = 500, multiplier = 1.5),
-        recover = "recoverDecreaseProductLikeCount"
+        recover = "recoverDecreaseProductLikeCount",
     )
     override fun decreaseProductLikeCount(id: Long) {
         val product = productRepository.findActiveProductById(id) ?: throw CoreException(
