@@ -14,7 +14,7 @@ class ProductLikeCountRepositoryImpl(
         jpaProductLikeCountRepository.save(productLikeCount)
 
     @Lock(LockModeType.OPTIMISTIC)
-    override fun findByProductId(productId: Long): ProductLikeCount? =
+    override fun findByProductIdWithOptimisticLock(productId: Long): ProductLikeCount? =
         jpaProductLikeCountRepository.findAll {
             select(
                 entity(ProductLikeCount::class),

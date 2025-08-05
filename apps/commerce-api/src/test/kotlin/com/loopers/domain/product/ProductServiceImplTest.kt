@@ -375,7 +375,7 @@ class ProductServiceImplTest {
             cut.increaseProductLikeCount(savedProduct.id)
 
             // then
-            val actual = productLikeCountRepository.findByProductId(savedProduct.id)!!
+            val actual = productLikeCountRepository.findByProductIdWithOptimisticLock(savedProduct.id)!!
             assertAll(
                 { assertThat(actual.count.value).isEqualTo(1L) },
                 { assertThat(actual.productId).isEqualTo(savedProduct.id) },
@@ -438,7 +438,7 @@ class ProductServiceImplTest {
             cut.decreaseProductLikeCount(savedProduct.id)
 
             // then
-            val actual = productLikeCountRepository.findByProductId(savedProduct.id)!!
+            val actual = productLikeCountRepository.findByProductIdWithOptimisticLock(savedProduct.id)!!
             assertAll(
                 { assertThat(actual.count.value).isEqualTo(0L) },
                 { assertThat(actual.productId).isEqualTo(savedProduct.id) },
