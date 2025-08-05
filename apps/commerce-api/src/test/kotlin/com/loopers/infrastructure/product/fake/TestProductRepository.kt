@@ -1,6 +1,7 @@
 package com.loopers.infrastructure.product.fake
 
 import com.loopers.domain.product.Product
+import com.loopers.domain.product.ProductItem
 import com.loopers.domain.product.ProductRepository
 import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.support.enums.sort.ProductSortType
@@ -8,6 +9,8 @@ import com.loopers.support.enums.sort.ProductSortType
 class TestProductRepository : ProductRepository {
     private val products = mutableListOf<Product>()
     private var nextId = 1L
+    private val productItems = mutableListOf<ProductItem>()
+    private var nextProductItemId = 1L
 
     fun saveAll(products: List<Product>): List<Product> {
         return products.map { save(it) }
@@ -20,6 +23,15 @@ class TestProductRepository : ProductRepository {
 
         this.products.add(product)
         return product
+    }
+
+    fun saveProductItem(productItem: ProductItem): ProductItem {
+        val idField = productItem.javaClass.superclass.getDeclaredField("id")
+        idField.isAccessible = true
+        idField.set(productItem, nextProductItemId++)
+
+        this.productItems.add(productItem)
+        return productItem
     }
 
     override fun findBySortType(brandId: Long?, sortBy: ProductSortType?, offset: Int, limit: Int): List<Product> {
@@ -37,6 +49,16 @@ class TestProductRepository : ProductRepository {
         }
 
         return sorted.drop(offset).take(limit)
+    }
+
+    override fun findProductItemsByIds(productItemIds: List<Long>): List<ProductItem> {
+        if (productItemIds.isEmpty()) {
+            return emptyList()
+        }
+
+        return productItems.filter { productItem ->
+            productItem.id in productItemIds && productItem.deletedAt == null
+        }
     }
 
     override fun findActiveProductById(id: Long): Product? {

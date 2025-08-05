@@ -4,6 +4,7 @@ import com.linecorp.kotlinjdsl.dsl.jpql.Jpql
 import com.linecorp.kotlinjdsl.dsl.jpql.sort.SortNullsStep
 import com.linecorp.kotlinjdsl.querymodel.jpql.predicate.Predicatable
 import com.loopers.domain.product.Product
+import com.loopers.domain.product.ProductItem
 import com.loopers.domain.product.ProductItems
 import com.loopers.domain.product.ProductRepository
 import com.loopers.domain.product.vo.ProductStatusType
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component
 @Component
 class ProductRepositoryImpl(
     private val jpaProductRepository: JpaProductRepository,
+    private val jpaProductItemRepository: JpaProductItemRepository,
 ) : ProductRepository {
     override fun findBySortType(brandId: Long?, sortBy: ProductSortType?, offset: Int, limit: Int): List<Product> =
         jpaProductRepository.findAll(offset = offset, limit = limit) {
@@ -42,6 +44,18 @@ class ProductRepositoryImpl(
             path(Product::deletedAt).isNull(),
         )
     }.firstOrNull()
+
+    override fun findProductItemsByIds(productItemIds: List<Long>): List<ProductItem> = jpaProductItemRepository.findAll {
+        select(
+            entity(ProductItem::class),
+        ).from(
+            entity(ProductItem::class),
+            fetchJoin(path(ProductItem::product)),
+        ).whereAnd(
+            path(ProductItem::id).`in`(productItemIds),
+            path(ProductItem::deletedAt).isNull(),
+        )
+    }.filterNotNull()
 
     private fun Jpql.eqBrandId(brandId: Long?): Predicatable? = brandId?.let { path(Product::brandId).eq(it) }
 
