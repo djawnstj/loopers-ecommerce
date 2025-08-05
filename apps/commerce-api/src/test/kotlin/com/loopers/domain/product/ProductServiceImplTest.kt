@@ -8,7 +8,6 @@ import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.product.ProductItemFixture
 import com.loopers.fixture.product.ProductLikeCountFixture
-import com.loopers.infrastructure.product.fake.TestProductItemRepository
 import com.loopers.infrastructure.product.fake.TestProductLikeCountRepository
 import com.loopers.infrastructure.product.fake.TestProductRepository
 import com.loopers.support.error.CoreException
@@ -31,8 +30,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val param = GetProductParam(null, null, 0, 10)
 
@@ -48,8 +46,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product1 = ProductFixture.`활성 상품 1`.toEntity()
             val product2 = ProductFixture.`활성 상품 2`.toEntity()
@@ -79,8 +76,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -97,8 +93,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val nonExistentId = 999L
 
@@ -122,8 +117,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -158,8 +152,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -178,8 +171,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -205,16 +197,15 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
 
             val productItem1 = ProductItemFixture.`검은색 라지 만원`.toEntity(savedProduct)
             val productItem2 = ProductItemFixture.`빨간색 라지 만원`.toEntity(savedProduct)
-            val savedProductItem1 = productItemRepository.save(productItem1)
-            val savedProductItem2 = productItemRepository.save(productItem2)
+            val savedProductItem1 = productRepository.saveProductItem(productItem1)
+            val savedProductItem2 = productRepository.saveProductItem(productItem2)
 
             val productItemIds = listOf(savedProductItem1.id, savedProductItem2.id)
 
@@ -235,14 +226,13 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
 
             val productItem = ProductItemFixture.`검은색 라지 만원`.toEntity(savedProduct)
-            val savedProductItem = productItemRepository.save(productItem)
+            val savedProductItem = productRepository.saveProductItem(productItem)
 
             val productItemIds = listOf(savedProductItem.id, 999L)
 
@@ -266,8 +256,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val param = DeductProductItemsQuantityParam(
                 items = listOf(
@@ -291,14 +280,13 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
 
-            val savedProductItem1 = productItemRepository.save(ProductItemFixture.`검은색 라지 만원`.toEntity(savedProduct))
-            val savedProductItem2 = productItemRepository.save(ProductItemFixture.`빨간색 라지 만원`.toEntity(savedProduct))
+            val savedProductItem1 = productRepository.saveProductItem(ProductItemFixture.`검은색 라지 만원`.toEntity(savedProduct))
+            val savedProductItem2 = productRepository.saveProductItem(ProductItemFixture.`빨간색 라지 만원`.toEntity(savedProduct))
 
             val param = DeductProductItemsQuantityParam(
                 listOf(
@@ -311,7 +299,7 @@ class ProductServiceImplTest {
             cut.deductProductItemsQuantity(param)
 
             // then
-            val actual = productItemRepository.findAllByIds(listOf(savedProductItem1.id, savedProductItem2.id))
+            val actual = productRepository.findProductItemAllByIds(listOf(savedProductItem1.id, savedProductItem2.id))
             assertThat(actual).extracting("name", "quantity")
                 .containsExactly(
                     Tuple.tuple("검은색 라지", 7),
@@ -328,8 +316,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             // when then
             assertThatThrownBy {
@@ -344,8 +331,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -365,8 +351,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -391,8 +376,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             // when then
             assertThatThrownBy {
@@ -407,8 +391,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -428,8 +411,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val productItemRepository = TestProductItemRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository, productItemRepository)
+            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
