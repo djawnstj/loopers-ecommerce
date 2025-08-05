@@ -4,6 +4,7 @@ import com.loopers.application.like.command.CreateProductLikeCommand
 import com.loopers.application.like.command.DeleteProductLikeCommand
 import com.loopers.domain.like.vo.TargetType
 import com.loopers.fixture.product.ProductFixture
+import com.loopers.fixture.product.ProductLikeCountFixture
 import com.loopers.fixture.user.UserFixture
 import com.loopers.infrastructure.like.JpaLikeRepository
 import com.loopers.infrastructure.product.JpaProductLikeCountRepository
@@ -278,6 +279,7 @@ class LikeFacadeIntegrationTest(
             val user1 = jpaUserRepository.saveAndFlush(UserFixture.`로그인 ID 1`.toEntity())
             val user2 = jpaUserRepository.saveAndFlush(UserFixture.`로그인 ID 2`.toEntity())
             val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+            jpaProductLikeCountRepository.saveAndFlush(ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id))
 
             val threadCount = 2
             val executor = Executors.newFixedThreadPool(threadCount)
@@ -300,7 +302,7 @@ class LikeFacadeIntegrationTest(
 
             // then
             val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
-            assertThat(actual?.count?.value).isEqualTo(2L)
+            assertThat(actual?.count?.value).isEqualTo(8L)
         }
     }
 }
