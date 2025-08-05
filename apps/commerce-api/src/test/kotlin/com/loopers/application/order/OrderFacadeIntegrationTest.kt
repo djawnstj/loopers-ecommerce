@@ -1,6 +1,7 @@
 package com.loopers.application.order
 
 import com.loopers.application.order.command.CreateOrderCommand
+import com.loopers.domain.point.vo.Point
 import com.loopers.domain.product.vo.Quantity
 import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.point.UserPointFixture
@@ -18,6 +19,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.data.repository.findByIdOrNull
 import java.math.BigDecimal
 
 class OrderFacadeIntegrationTest(
@@ -42,7 +44,7 @@ class OrderFacadeIntegrationTest(
             val productItem = productItemRepository.save(ProductItemFixture.`검은색 라지 만원`.toEntity(product))
 
             val userPoint = UserPointFixture.`1000 포인트`.toEntity(user.id)
-            userPoint.charge(com.loopers.domain.point.vo.Point(BigDecimal("10000")))
+            userPoint.charge(Point(BigDecimal("10000")))
             userPointRepository.save(userPoint)
 
             val command = CreateOrderCommand(
@@ -69,7 +71,7 @@ class OrderFacadeIntegrationTest(
             val productItem = productItemRepository.save(ProductItemFixture.`검은색 라지 만원`.toEntity(product))
 
             val userPoint = UserPointFixture.`1000 포인트`.toEntity(user.id)
-            userPoint.charge(com.loopers.domain.point.vo.Point(BigDecimal("15000")))
+            userPoint.charge(Point(BigDecimal("15000")))
             userPointRepository.save(userPoint)
 
             val command = CreateOrderCommand(
@@ -81,7 +83,7 @@ class OrderFacadeIntegrationTest(
             cut.createOrder(command)
 
             // then
-            val actual = userPointRepository.findByUserId(user.id)!!
+            val actual = userPointRepository.findByIdOrNull(1L)!!
             assertThat(actual.balance.value).isEqualByComparingTo(BigDecimal("6000"))
         }
 
@@ -94,7 +96,7 @@ class OrderFacadeIntegrationTest(
             val productItem = productItemRepository.save(ProductItemFixture.`검은색 라지 만원`.toEntity(product))
 
             val userPoint = UserPointFixture.`1000 포인트`.toEntity(user.id)
-            userPoint.charge(com.loopers.domain.point.vo.Point(BigDecimal("30000")))
+            userPoint.charge(Point(BigDecimal("30000")))
             userPointRepository.save(userPoint)
 
             val command = CreateOrderCommand(

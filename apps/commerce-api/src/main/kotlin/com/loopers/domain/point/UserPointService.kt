@@ -33,16 +33,20 @@ class UserPointServiceImpl(
 
     override fun getUserPoint(userId: Long): UserPoint {
         val userPoint = (
-            userPointRepository.findByUserId(userId)
-            ?: throw CoreException(ErrorType.USER_POINT_NOT_FOUND, "회원 식별자 $userId 에 해당하는 포인트를 찾지 못했습니다.")
-        )
+                userPointRepository.findByUserId(userId)
+                    ?: throw CoreException(ErrorType.USER_POINT_NOT_FOUND, "회원 식별자 $userId 에 해당하는 포인트를 찾지 못했습니다.")
+                )
 
         return userPoint
     }
 
     @Transactional
     override fun useUserPoint(userId: Long, amount: BigDecimal) {
-        val userPoint = getUserPoint(userId)
+        val userPoint = (
+                userPointRepository.findByUserIdWithPessimisticWrite(userId)
+                    ?: throw CoreException(ErrorType.USER_POINT_NOT_FOUND, "회원 식별자 $userId 에 해당하는 포인트를 찾지 못했습니다.")
+                )
+
         userPoint.deduct(Point(amount))
     }
 

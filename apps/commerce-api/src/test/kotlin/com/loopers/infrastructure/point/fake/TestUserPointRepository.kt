@@ -14,4 +14,6 @@ class TestUserPointRepository : UserPointRepository {
     }
 
     override fun findByUserId(userId: Long): UserPoint? = points.values.find { it.userId == userId }
+
+    override fun findByUserIdWithPessimisticWrite(userId: Long): UserPoint? = findByUserId(userId)
 }
