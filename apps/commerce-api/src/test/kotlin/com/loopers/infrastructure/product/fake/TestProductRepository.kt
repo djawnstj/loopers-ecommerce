@@ -61,6 +61,9 @@ class TestProductRepository : ProductRepository {
         }
     }
 
+    override fun findProductItemByProductItemIdWithPessimisticWrite(productItemId: Long): ProductItem? =
+        productItems.find { productItem -> productItem.id == productItemId }
+
     override fun findActiveProductById(id: Long): Product? {
         return products.find {
             it.id == id && it.status == ProductStatusType.ACTIVE && it.deletedAt == null

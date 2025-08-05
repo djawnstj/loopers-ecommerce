@@ -12,7 +12,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class ProductRepositoryImplTest(
     private val cut: ProductRepository,
@@ -296,6 +300,55 @@ class ProductRepositoryImplTest(
                 .containsExactly(
                     "활성상품 1",
                 )
+        }
+    }
+
+    @Nested
+    inner class `비관적 락으로 상품 아이템 ID로 조회할 때` {
+        @Test
+        fun `존재하지 않는 상품 아이템 ID로 조회하면 null 을 반환한다`() {
+            // given
+            val nonExistentId = 999L
+
+            // when
+            val actual = cut.findProductItemByProductItemIdWithPessimisticWrite(nonExistentId)
+
+            // then
+            assertThat(actual).isNull()
+        }
+
+        @Test
+        fun `존재하는 상품 아이템 ID로 조회하면 반환한다`() {
+            // given
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val savedProduct = jpaRepository.saveAndFlush(product)
+
+            val productItem = ProductItemFixture.`검은색 라지 만원`.toEntity(savedProduct)
+            val savedItem = jpaProductItemRepository.saveAndFlush(productItem)
+
+            // when
+            val actual = cut.findProductItemByProductItemIdWithPessimisticWrite(savedItem.id)
+
+            // then
+            assertThat(actual).isNotNull
+                .extracting("name", "price")
+                .containsExactly("검은색 라지", BigDecimal("10000.00"))
+        }
+
+        @Test
+        fun `삭제된 상품 아이템은 조회되지 않는다`() {
+            // given
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val savedProduct = jpaRepository.saveAndFlush(product)
+
+            val productItem = ProductItemFixture.`검은색 라지 만원`.toEntity(savedProduct).also(ProductItem::delete)
+            val savedItem = jpaProductItemRepository.saveAndFlush(productItem)
+
+            // when
+            val actual = cut.findProductItemByProductItemIdWithPessimisticWrite(savedItem.id)
+
+            // then
+            assertThat(actual).isNull()
         }
     }
 }
