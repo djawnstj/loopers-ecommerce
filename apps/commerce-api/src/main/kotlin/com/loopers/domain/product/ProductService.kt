@@ -57,14 +57,12 @@ class ProductServiceImpl(
 
     @Transactional
     override fun deductProductItemsQuantity(param: DeductProductItemsQuantityParam) {
-        val productItemIds = param.items.map(DeductProductItemsQuantityParam.DeductItem::productItemId)
-        val productItems = getProductItemsDetail(productItemIds)
-
-        param.items.forEach { deductItem ->
-            val productItem = productItems.first { it.id == deductItem.productItemId }
-
-            productItem.deduct(deductItem.quantity)
-        }
+        param.items.sortedBy(DeductProductItemsQuantityParam.DeductItem::productItemId)
+            .forEach { deductItem ->
+                productRepository.findProductItemByProductItemIdWithPessimisticWrite(deductItem.productItemId)
+                    ?.deduct(deductItem.quantity)
+                    ?: throw CoreException(ErrorType.PRODUCT_ITEM_NOT_FOUND, "일부 상품 아이템을 찾을 수 없습니다.")
+            }
     }
 
     @Transactional

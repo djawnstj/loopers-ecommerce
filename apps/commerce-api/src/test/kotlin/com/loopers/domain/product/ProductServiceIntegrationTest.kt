@@ -4,6 +4,7 @@ import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.vo.LikeCount
 import com.loopers.domain.product.vo.ProductStatusType
+import com.loopers.domain.product.vo.Quantity
 import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.product.ProductItemFixture
@@ -25,6 +26,7 @@ import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class ProductServiceIntegrationTest(
     private val cut: ProductService,
@@ -375,6 +377,41 @@ class ProductServiceIntegrationTest(
                     Tuple.tuple("검은색 라지", 7),
                     Tuple.tuple("빨간색 라지", 5),
                 )
+        }
+
+        @Test
+        fun `동시에 재고 차감 요청이 들어와도 정확하게 재고 차감된다`() {
+            // given
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+            val productItem = jpaProductItemRepository.saveAndFlush(ProductItemFixture.`재고 10개`.toEntity(product))
+
+            val threadCount = 5
+            val deductQuantityPerThread = 2
+            val executor = Executors.newFixedThreadPool(threadCount)
+            val latch = CountDownLatch(threadCount)
+
+            // when
+            repeat(threadCount) {
+                executor.submit {
+                    try {
+                        val param = DeductProductItemsQuantityParam(
+                            listOf(
+                                DeductProductItemsQuantityParam.DeductItem(productItem.id, deductQuantityPerThread),
+                            ),
+                        )
+                        cut.deductProductItemsQuantity(param)
+                    } finally {
+                        latch.countDown()
+                    }
+                }
+            }
+
+            latch.await(10, TimeUnit.SECONDS)
+            executor.shutdown()
+
+            // then
+            val actual = jpaProductItemRepository.findByIdOrNull(productItem.id)
+            assertThat(actual?.quantity).isEqualTo(Quantity(0))
         }
     }
 
