@@ -6,6 +6,10 @@ import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.vo.LikeCount
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
+import org.springframework.dao.OptimisticLockingFailureException
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Recover
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -64,6 +68,12 @@ class ProductServiceImpl(
     }
 
     @Transactional
+    @Retryable(
+        value = [OptimisticLockingFailureException::class],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 500, multiplier = 1.5),
+        recover = "recoverIncreaseProductLikeCount"
+    )
     override fun increaseProductLikeCount(id: Long) {
         val product = productRepository.findActiveProductById(id) ?: throw CoreException(
             ErrorType.PRODUCT_NOT_FOUND,
@@ -77,6 +87,12 @@ class ProductServiceImpl(
     }
 
     @Transactional
+    @Retryable(
+        value = [OptimisticLockingFailureException::class],
+        maxAttempts = 3,
+        backoff = Backoff(delay = 500, multiplier = 1.5),
+        recover = "recoverDecreaseProductLikeCount"
+    )
     override fun decreaseProductLikeCount(id: Long) {
         val product = productRepository.findActiveProductById(id) ?: throw CoreException(
             ErrorType.PRODUCT_NOT_FOUND,
@@ -87,5 +103,17 @@ class ProductServiceImpl(
             ?: productLikeCountRepository.save(ProductLikeCount(id, 0))
 
         productLikeCount.decrease()
+    }
+
+    @Recover
+    fun recoverIncreaseProductLikeCount(ex: Exception, id: Long) {
+        // 실패 처리(ex, id)
+        throw CoreException(ErrorType.FAILED_UPDATE_PRODUCT_LIKE_COUNT, "식별자 $id 에 해당하는 상품 좋아요 수 증가에 실패했습니다.")
+    }
+
+    @Recover
+    fun recoverDecreaseProductLikeCount(ex: Exception, id: Long) {
+        // 실패 처리(ex, id)
+        throw CoreException(ErrorType.FAILED_UPDATE_PRODUCT_LIKE_COUNT, "식별자 $id 에 해당하는 상품 좋아요 수 증가에 실패했습니다.")
     }
 }

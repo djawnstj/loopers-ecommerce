@@ -45,6 +45,7 @@ enum class ErrorType(val status: HttpStatus, val code: String, val message: Stri
         "상품 좋아요는 0 이상이어야 합니다.",
     ),
     INSUFFICIENT_PRODUCT_QUANTITY(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "상품 재고가 부족합니다."),
+    FAILED_UPDATE_PRODUCT_LIKE_COUNT(HttpStatus.CONFLICT, HttpStatus.CONFLICT.reasonPhrase, "상품 좋아요 카운트 수정에 실패했습니다."),
 
     // Order
     INVALID_MONEY_VALUE(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "가격은 0 이상이어야 합니다."),
