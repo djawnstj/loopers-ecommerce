@@ -22,7 +22,6 @@ import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.orm.ObjectOptimisticLockingFailureException
 import java.time.LocalDateTime
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -428,16 +427,16 @@ class ProductServiceIntegrationTest(
         }
 
         @Test
-        fun `동시에 같은 상품의 좋아요 수를 증가시키면 낙관적 락 예외가 발생한다`() {
+        fun `재시도 횟수를 초과하면 CoreException FAILED_UPDATE_PRODUCT_LIKE_COUNT 예외가 터진다`() {
             // given
             val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
             val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
             jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
 
-            val threadCount = 2
+            val threadCount = 20
             val executor = Executors.newFixedThreadPool(threadCount)
             val latch = CountDownLatch(threadCount)
-            val exceptions = mutableListOf<Exception>()
+            val actual = mutableListOf<Exception>()
 
             // when
             repeat(threadCount) {
@@ -445,7 +444,9 @@ class ProductServiceIntegrationTest(
                     try {
                         cut.increaseProductLikeCount(product.id)
                     } catch (e: Exception) {
-                        exceptions.add(e)
+                        synchronized(actual) {
+                            actual.add(e)
+                        }
                     } finally {
                         latch.countDown()
                     }
@@ -456,7 +457,8 @@ class ProductServiceIntegrationTest(
             executor.shutdown()
 
             // then
-            assertThat(exceptions).anyMatch { it is ObjectOptimisticLockingFailureException }
+            assertThat(actual).isNotEmpty
+                .allMatch { it is CoreException && it.errorType == ErrorType.FAILED_UPDATE_PRODUCT_LIKE_COUNT }
         }
     }
 
@@ -509,16 +511,16 @@ class ProductServiceIntegrationTest(
         }
 
         @Test
-        fun `동시에 같은 상품의 좋아요 수를 차감시키면 낙관적 락 예외가 발생한다`() {
+        fun `재시도 횟수를 초과하면 CoreException FAILED_UPDATE_PRODUCT_LIKE_COUNT 예외가 터진다`() {
             // given
             val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
             val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
             jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
 
-            val threadCount = 2
+            val threadCount = 20
             val executor = Executors.newFixedThreadPool(threadCount)
             val latch = CountDownLatch(threadCount)
-            val exceptions = mutableListOf<Exception>()
+            val actual = mutableListOf<Exception>()
 
             // when
             repeat(threadCount) {
@@ -526,7 +528,9 @@ class ProductServiceIntegrationTest(
                     try {
                         cut.decreaseProductLikeCount(product.id)
                     } catch (e: Exception) {
-                        exceptions.add(e)
+                        synchronized(actual) {
+                            actual.add(e)
+                        }
                     } finally {
                         latch.countDown()
                     }
@@ -537,7 +541,8 @@ class ProductServiceIntegrationTest(
             executor.shutdown()
 
             // then
-            assertThat(exceptions).anyMatch { it is ObjectOptimisticLockingFailureException }
+            assertThat(actual).isNotEmpty
+                .allMatch { it is CoreException && it.errorType == ErrorType.FAILED_UPDATE_PRODUCT_LIKE_COUNT }
         }
     }
 }
