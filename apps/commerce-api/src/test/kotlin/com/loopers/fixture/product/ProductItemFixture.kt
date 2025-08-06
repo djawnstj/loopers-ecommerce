@@ -15,6 +15,7 @@ sealed class ProductItemFixture(
     data object `1 만원 상품` : ProductItemFixture(price = BigDecimal("10000"))
     data object `2 만원 상품` : ProductItemFixture(price = BigDecimal("20000"))
     data object `재고 10개` : ProductItemFixture()
+    data object `재고 2개` : ProductItemFixture(quantity = 2)
 
     fun toEntity(product: Product): ProductItem = ProductItem(product, name, price, quantity)
 }
