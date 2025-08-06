@@ -15,10 +15,13 @@ import com.loopers.infrastructure.product.JpaProductItemRepository
 import com.loopers.infrastructure.product.JpaProductRepository
 import com.loopers.infrastructure.user.JpaUserRepository
 import com.loopers.support.IntegrationTestSupport
+import com.loopers.support.TransactionTraceHolder
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertAll
 import org.springframework.data.repository.findByIdOrNull
 import java.math.BigDecimal
 import java.util.concurrent.CountDownLatch
@@ -37,6 +40,60 @@ class OrderFacadeIntegrationTest(
 
     @Nested
     inner class `주문을 생성할 때` {
+
+        @Test
+        fun `포인트 부족으로 주문이 실패하면 주문이 생성되지 않는다`() {
+            // given
+            val user = userRepository.save(UserFixture.기본.toEntity())
+            val brand = brandRepository.save(BrandFixture.기본.toEntity())
+            val product = productRepository.save(ProductFixture.`활성 상품 1`.toEntity(brand.id))
+            val productItem = productItemRepository.save(ProductItemFixture.`검은색 라지 만원`.toEntity(product))
+            userPointRepository.save(UserPointFixture.`1000 포인트`.toEntity(user.id))
+
+            val command = CreateOrderCommand(
+                user.loginId.value,
+                listOf(CreateOrderCommand.OrderItemSummary(productItem.id, 1)),
+            )
+
+            // when
+            assertThatThrownBy {
+                cut.createOrder(command)
+            }
+
+            // then
+            val actual = orderRepository.findAll()
+            assertAll(
+                { assertThat(actual).isEmpty() },
+                { assertThat(TransactionTraceHolder.get().rollbackOnly).isTrue() }
+            )
+        }
+
+        @Test
+        fun `재고 부족으로 주문이 실패하면 주문이 생성되지 않는다`() {
+            // given
+            val user = userRepository.save(UserFixture.기본.toEntity())
+            val brand = brandRepository.save(BrandFixture.기본.toEntity())
+            val product = productRepository.save(ProductFixture.`활성 상품 1`.toEntity(brand.id))
+            val productItem = productItemRepository.save(ProductItemFixture.`재고 2개`.toEntity(product))
+            userPointRepository.save(UserPointFixture.`5만 포인트`.toEntity(user.id))
+
+            val command = CreateOrderCommand(
+                user.loginId.value,
+                listOf(CreateOrderCommand.OrderItemSummary(productItem.id, 5)),
+            )
+
+            // when
+            assertThatThrownBy {
+                cut.createOrder(command)
+            }
+
+            // then
+            val actual = orderRepository.findAll()
+            assertAll(
+                { assertThat(actual).isEmpty() },
+                { assertThat(TransactionTraceHolder.get().rollbackOnly).isTrue() }
+            )
+        }
 
         @Test
         fun `주문이 생성된다`() {
