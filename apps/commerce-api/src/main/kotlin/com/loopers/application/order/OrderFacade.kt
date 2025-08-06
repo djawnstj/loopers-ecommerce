@@ -20,7 +20,7 @@ class OrderFacade(
     fun createOrder(command: CreateOrderCommand) {
         val user = userService.getUserProfile(command.loginId)
         val productItems =
-            productService.getProductItemsDetail(command.orderItemSummaries.map(CreateOrderCommand.OrderItemSummary::productItemId))
+            productService.getProductItemsDetailwithLock(command.orderItemSummaries.map(CreateOrderCommand.OrderItemSummary::productItemId))
 
         val order = orderService.submitOrder(command.toSubmitOrderParam(user.id, productItems))
 

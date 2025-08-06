@@ -210,7 +210,7 @@ class ProductServiceImplTest {
             val productItemIds = listOf(savedProductItem1.id, savedProductItem2.id)
 
             // when
-            val actual = cut.getProductItemsDetail(productItemIds)
+            val actual = cut.getProductItemsDetailwithLock(productItemIds)
 
             // then
             assertThat(actual).hasSize(2)
@@ -238,7 +238,7 @@ class ProductServiceImplTest {
 
             // when then
             assertThatThrownBy {
-                cut.getProductItemsDetail(productItemIds)
+                cut.getProductItemsDetailwithLock(productItemIds)
             }.isInstanceOf(CoreException::class.java)
                 .extracting("errorType", "message")
                 .containsExactly(

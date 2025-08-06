@@ -17,7 +17,7 @@ interface ProductService {
     fun getProducts(param: GetProductParam): List<Product>
     fun getActiveProductInfo(id: Long): Product
     fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView
-    fun getProductItemsDetail(productItemIds: List<Long>): List<ProductItem>
+    fun getProductItemsDetailwithLock(productItemIds: List<Long>): List<ProductItem>
     fun deductProductItemsQuantity(param: DeductProductItemsQuantityParam)
     fun increaseProductLikeCount(id: Long)
     fun decreaseProductLikeCount(id: Long)
@@ -45,8 +45,12 @@ class ProductServiceImpl(
         return ProductDetailView(productDetail, brandDetail, productLikeCount)
     }
 
-    override fun getProductItemsDetail(productItemIds: List<Long>): List<ProductItem> {
-        val productItems = productRepository.findProductItemsByIds(productItemIds)
+    override fun getProductItemsDetailwithLock(productItemIds: List<Long>): List<ProductItem> {
+        val productItems = productItemIds.sorted()
+            .map { productItemId ->
+                productRepository.findProductItemByProductItemIdWithPessimisticWrite(productItemId)
+                    ?: throw CoreException(ErrorType.PRODUCT_ITEM_NOT_FOUND, "일부 상품 아이템을 찾을 수 없습니다.")
+            }
 
         if (productItems.size != productItemIds.size) {
             throw CoreException(ErrorType.PRODUCT_ITEM_NOT_FOUND, "일부 상품 아이템을 찾을 수 없습니다.")
