@@ -74,7 +74,7 @@ class TestProductService : ProductService {
         return ProductDetailView(productDetail, brandDetail, productLikeCount)
     }
 
-    override fun getProductItemsDetail(productItemIds: List<Long>): List<ProductItem> {
+    override fun getProductItemsDetailwithLock(productItemIds: List<Long>): List<ProductItem> {
         val foundItems = productItems.filter { it.id in productItemIds }
 
         if (foundItems.size != productItemIds.size) {
@@ -86,7 +86,7 @@ class TestProductService : ProductService {
 
     override fun deductProductItemsQuantity(param: DeductProductItemsQuantityParam) {
         val productItemIds = param.items.map { it.productItemId }
-        val foundItems = getProductItemsDetail(productItemIds)
+        val foundItems = getProductItemsDetailwithLock(productItemIds)
 
         param.items.forEach { deductItem ->
             val productItem = foundItems.first { it.id == deductItem.productItemId }
