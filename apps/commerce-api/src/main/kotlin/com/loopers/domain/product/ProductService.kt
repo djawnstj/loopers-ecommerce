@@ -17,7 +17,7 @@ interface ProductService {
     fun getProducts(param: GetProductParam): List<Product>
     fun getActiveProductInfo(id: Long): Product
     fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView
-    fun getProductItemsDetailwithLock(productItemIds: List<Long>): List<ProductItem>
+    fun getProductItemsDetailWithLock(productItemIds: List<Long>): ProductItems
     fun deductProductItemsQuantity(param: DeductProductItemsQuantityParam)
     fun increaseProductLikeCount(id: Long)
     fun decreaseProductLikeCount(id: Long)
@@ -45,7 +45,7 @@ class ProductServiceImpl(
         return ProductDetailView(productDetail, brandDetail, productLikeCount)
     }
 
-    override fun getProductItemsDetailwithLock(productItemIds: List<Long>): List<ProductItem> {
+    override fun getProductItemsDetailWithLock(productItemIds: List<Long>): ProductItems {
         val productItems = productItemIds.sorted()
             .map { productItemId ->
                 productRepository.findProductItemByProductItemIdWithPessimisticWrite(productItemId)
@@ -56,7 +56,7 @@ class ProductServiceImpl(
             throw CoreException(ErrorType.PRODUCT_ITEM_NOT_FOUND, "일부 상품 아이템을 찾을 수 없습니다.")
         }
 
-        return productItems
+        return ProductItems(productItems.toMutableList())
     }
 
     @Transactional
@@ -116,6 +116,6 @@ class ProductServiceImpl(
     @Recover
     fun recoverDecreaseProductLikeCount(ex: Exception, id: Long) {
         // 실패 처리(ex, id)
-        throw CoreException(ErrorType.FAILED_UPDATE_PRODUCT_LIKE_COUNT, "식별자 $id 에 해당하는 상품 좋아요 수 증가에 실패했습니다.")
+        throw CoreException(ErrorType.FAILED_UPDATE_PRODUCT_LIKE_COUNT, "식별자 $id 에 해당하는 상품 좋아요 수 감소에 실패했습니다.")
     }
 }
