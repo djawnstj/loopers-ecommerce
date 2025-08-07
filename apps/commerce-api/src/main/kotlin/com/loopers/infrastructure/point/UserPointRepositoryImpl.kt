@@ -8,6 +8,7 @@ import com.loopers.domain.point.UserPointRepository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.LockModeType
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class UserPointRepositoryImpl(
@@ -27,6 +28,7 @@ class UserPointRepositoryImpl(
         )
     }.firstOrNull()
 
+    @Transactional
     override fun findByUserIdWithPessimisticWrite(userId: Long): UserPoint? {
         val query = jpql {
             select(
