@@ -18,7 +18,7 @@ class OrderFacade(
     private val userPointService: UserPointService,
 ) {
 
-    @Transactional
+    @Transactional(timeout = 5)
     fun createOrder(command: CreateOrderCommand) {
         val user = userService.getUserProfile(command.loginId)
         val productItems =
