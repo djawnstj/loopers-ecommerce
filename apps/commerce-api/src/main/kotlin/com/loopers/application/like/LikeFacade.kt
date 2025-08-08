@@ -8,6 +8,7 @@ import com.loopers.domain.like.LikeService
 import com.loopers.domain.product.ProductService
 import com.loopers.domain.user.UserService
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class LikeFacade(
@@ -17,6 +18,7 @@ class LikeFacade(
     private val lockManager: LockManager,
 ) {
 
+    @Transactional
     fun createProductLike(command: CreateProductLikeCommand) {
         val lockSuccess = lockManager.tryLock(command.loginId, command.targetId.toString(), command.target.name)
 
@@ -33,6 +35,7 @@ class LikeFacade(
         }
     }
 
+    @Transactional
     fun deleteProductLike(command: DeleteProductLikeCommand) {
         val lockSuccess = lockManager.tryLock(command.loginId, command.targetId.toString(), command.target.name)
 

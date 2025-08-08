@@ -1,5 +1,6 @@
 package com.loopers.infrastructure.point
 
+import com.loopers.domain.point.UserPoint
 import com.loopers.fixture.point.UserPointFixture
 import com.loopers.support.IntegrationTestSupport
 import org.assertj.core.api.Assertions.assertThat
@@ -72,6 +73,64 @@ class UserPointRepositoryImplTest(
             assertThat(actual).isNotNull
                 .extracting("userId", "balance")
                 .containsExactly(1L, BigDecimal("0.00"))
+        }
+
+        @Test
+        fun `삭제된 포인트는 조회되지 않는다`() {
+            // given
+            val userId = 1L
+            val deletedUserPoint = UserPointFixture.기본.toEntity(userId = userId).apply(UserPoint::delete)
+            jpaRepository.saveAndFlush(deletedUserPoint)
+
+            // when
+            val actual = cut.findByUserId(userId)
+
+            // then
+            assertThat(actual).isNull()
+        }
+    }
+
+    @Nested
+    inner class `비관적 락으로 회원 식별자로 포인트를 찾을 때` {
+        @Test
+        fun `해당하는 포인트가 없으면 null 을 반환한다`() {
+            // given
+            val anyUserId = 999L
+
+            // when
+            val actual = cut.findByUserIdWithPessimisticWrite(anyUserId)
+
+            // then
+            assertThat(actual).isNull()
+        }
+
+        @Test
+        fun `해당하는 포인트가 있으면 UserPoint 객체에 담아 반환한다`() {
+            // given
+            val anyUserId = 1L
+            jpaRepository.saveAndFlush(UserPointFixture.기본.toEntity(userId = anyUserId))
+
+            // when
+            val actual = cut.findByUserIdWithPessimisticWrite(anyUserId)
+
+            // then
+            assertThat(actual).isNotNull
+                .extracting("userId", "balance")
+                .containsExactly(1L, BigDecimal("0.00"))
+        }
+
+        @Test
+        fun `삭제된 포인트는 조회되지 않는다`() {
+            // given
+            val userId = 1L
+            val deletedUserPoint = UserPointFixture.기본.toEntity(userId = userId).apply(UserPoint::delete)
+            jpaRepository.saveAndFlush(deletedUserPoint)
+
+            // when
+            val actual = cut.findByUserIdWithPessimisticWrite(userId)
+
+            // then
+            assertThat(actual).isNull()
         }
     }
 }

@@ -16,8 +16,7 @@ class OrderServiceImpl(
 
     @Transactional
     override fun submitOrder(param: SubmitOrderParam): Order {
-        val totalAmount = param.orderItems.sumOf(SubmitOrderParam.OrderItem::productItemPrice)
-        val order = Order(param.userId, totalAmount, totalAmount)
+        val order = Order(param.userId, param.totalAmount, param.payPrice)
 
         val orderItems = param.orderItems
             .filter { it.quantity > 0 }

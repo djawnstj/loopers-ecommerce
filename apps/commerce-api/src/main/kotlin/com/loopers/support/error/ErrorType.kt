@@ -45,10 +45,15 @@ enum class ErrorType(val status: HttpStatus, val code: String, val message: Stri
         "상품 좋아요는 0 이상이어야 합니다.",
     ),
     INSUFFICIENT_PRODUCT_QUANTITY(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "상품 재고가 부족합니다."),
+    FAILED_UPDATE_PRODUCT_LIKE_COUNT(HttpStatus.CONFLICT, HttpStatus.CONFLICT.reasonPhrase, "상품 좋아요 카운트 수정에 실패했습니다."),
 
     // Order
     INVALID_MONEY_VALUE(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "가격은 0 이상이어야 합니다."),
     REQUIRED_NOT_EMPTY_ORDER_ITEMS(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "주문 시 주문 아이템은 1개 이상이어야 합니다."),
+
+    // Coupon
+    USER_COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "사용자의 쿠폰을 찾지 못했습니다."),
+    ALREADY_USED_USER_COUPON(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "이미 사용된 쿠폰입니다."),
 
     /** 범용 에러 */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase, "일시적인 오류가 발생했습니다."),

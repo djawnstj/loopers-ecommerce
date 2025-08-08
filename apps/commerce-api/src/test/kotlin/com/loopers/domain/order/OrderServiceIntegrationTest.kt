@@ -31,7 +31,7 @@ class OrderServiceIntegrationTest(
             val product = productRepository.save(ProductFixture.`활성 상품 1`.toEntity())
             val productItem = productItemRepository.save(ProductItemFixture.`1 만원 상품`.toEntity(product))
 
-            val param = SubmitOrderParam(userId, listOf(SubmitOrderParam.OrderItem(productItem, 1)))
+            val param = SubmitOrderParam(userId, listOf(SubmitOrderParam.OrderItem(productItem, 1)), BigDecimal("10000"), BigDecimal("10000"))
 
             // when
             cut.submitOrder(param)
@@ -50,6 +50,8 @@ class OrderServiceIntegrationTest(
             val product = productRepository.save(ProductFixture.`활성 상품 1`.toEntity())
             val productItem1 = productItemRepository.save(ProductItemFixture.`1 만원 상품`.toEntity(product))
             val productItem2 = productItemRepository.save(ProductItemFixture.`2 만원 상품`.toEntity(product))
+            val totalAmount = BigDecimal("30000")
+            val payPrice = BigDecimal("30000")
 
             val param = SubmitOrderParam(
                 userId,
@@ -57,6 +59,8 @@ class OrderServiceIntegrationTest(
                     SubmitOrderParam.OrderItem(productItem1, 1),
                     SubmitOrderParam.OrderItem(productItem2, 1),
                 ),
+                totalAmount,
+                payPrice,
             )
 
             // when
@@ -73,7 +77,7 @@ class OrderServiceIntegrationTest(
             val product = productRepository.save(ProductFixture.`활성 상품 1`.toEntity())
             val productItem = productItemRepository.save(ProductItemFixture.`1 만원 상품`.toEntity(product))
 
-            val param = SubmitOrderParam(userId, listOf(SubmitOrderParam.OrderItem(productItem, 1)))
+            val param = SubmitOrderParam(userId, listOf(SubmitOrderParam.OrderItem(productItem, 1)), BigDecimal("10000"), BigDecimal("10000"))
 
             // when
             val order = cut.submitOrder(param)

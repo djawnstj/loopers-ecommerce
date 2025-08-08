@@ -6,6 +6,8 @@ import java.math.BigDecimal
 data class SubmitOrderParam(
     val userId: Long,
     val orderItems: List<OrderItem>,
+    val totalAmount: BigDecimal,
+    val payPrice: BigDecimal,
 ) {
     data class OrderItem(
         val productItemId: Long,

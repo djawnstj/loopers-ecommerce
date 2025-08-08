@@ -1,0 +1,7 @@
+package com.loopers.infrastructure.coupon
+
+import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpqlExecutor
+import com.loopers.domain.coupon.UserCoupon
+import org.springframework.data.jpa.repository.JpaRepository
+
+interface JpaUserCouponRepository : JpaRepository<UserCoupon, Long>, KotlinJdslJpqlExecutor

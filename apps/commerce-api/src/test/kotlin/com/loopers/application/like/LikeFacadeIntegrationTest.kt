@@ -4,6 +4,7 @@ import com.loopers.application.like.command.CreateProductLikeCommand
 import com.loopers.application.like.command.DeleteProductLikeCommand
 import com.loopers.domain.like.vo.TargetType
 import com.loopers.fixture.product.ProductFixture
+import com.loopers.fixture.product.ProductLikeCountFixture
 import com.loopers.fixture.user.UserFixture
 import com.loopers.infrastructure.like.JpaLikeRepository
 import com.loopers.infrastructure.product.JpaProductLikeCountRepository
@@ -196,6 +197,37 @@ class LikeFacadeIntegrationTest(
                 .extracting("productId", "count")
                 .containsExactly(product.id, 1L)
         }
+
+        @Test
+        fun `두명이 동시에 같은 상품에 좋아요를 생성하면 좋아요 개수가 2개로 정상 반영된다`() {
+            // given
+            val user1 = jpaUserRepository.saveAndFlush(UserFixture.`로그인 ID 1`.toEntity())
+            val user2 = jpaUserRepository.saveAndFlush(UserFixture.`로그인 ID 2`.toEntity())
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+
+            val threadCount = 2
+            val executor = Executors.newFixedThreadPool(threadCount)
+            val latch = CountDownLatch(threadCount)
+
+            val command1 = CreateProductLikeCommand(user1.loginId.value, product.id)
+            val command2 = CreateProductLikeCommand(user2.loginId.value, product.id)
+
+            // when
+            listOf(command1, command2).forEach { command ->
+                try {
+                    cut.createProductLike(command)
+                } finally {
+                    latch.countDown()
+                }
+            }
+
+            latch.await(10, TimeUnit.SECONDS)
+            executor.shutdown()
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual?.count?.value).isEqualTo(2L)
+        }
     }
 
     @Nested
@@ -239,6 +271,38 @@ class LikeFacadeIntegrationTest(
             assertThat(actual)
                 .extracting("productId", "count")
                 .containsExactly(product.id, 0L)
+        }
+
+        @Test
+        fun `두명이 동시에 같은 상품에 좋아요를 생성하면 좋아요 개수가 2개로 정상 반영된다`() {
+            // given
+            val user1 = jpaUserRepository.saveAndFlush(UserFixture.`로그인 ID 1`.toEntity())
+            val user2 = jpaUserRepository.saveAndFlush(UserFixture.`로그인 ID 2`.toEntity())
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+            jpaProductLikeCountRepository.saveAndFlush(ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id))
+
+            val threadCount = 2
+            val executor = Executors.newFixedThreadPool(threadCount)
+            val latch = CountDownLatch(threadCount)
+
+            val command1 = DeleteProductLikeCommand(user1.loginId.value, product.id)
+            val command2 = DeleteProductLikeCommand(user2.loginId.value, product.id)
+
+            // when
+            listOf(command1, command2).forEach { command ->
+                try {
+                    cut.deleteProductLike(command)
+                } finally {
+                    latch.countDown()
+                }
+            }
+
+            latch.await(10, TimeUnit.SECONDS)
+            executor.shutdown()
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual?.count?.value).isEqualTo(8L)
         }
     }
 }
