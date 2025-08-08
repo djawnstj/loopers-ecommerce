@@ -26,4 +26,6 @@ class UserCouponRepositoryImpl(
                 path(UserCoupon::deletedAt).isNull(),
             )
         }.firstOrNull()
+
+    override fun update(userCoupon: UserCoupon): UserCoupon = jpaUserCouponRepository.saveAndFlush(userCoupon)
 }

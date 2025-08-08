@@ -7,6 +7,11 @@ import com.loopers.support.IntegrationTestSupport
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.data.repository.findByIdOrNull
+import java.math.BigDecimal
+import java.time.Clock
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 class UserCouponRepositoryImplTest(
     private val cut: UserCouponRepository,
@@ -80,6 +85,53 @@ class UserCouponRepositoryImplTest(
                     userCoupon.userId,
                     coupon.id,
                     "5000원 할인 쿠폰",
+                )
+        }
+    }
+
+    @Nested
+    inner class `사용자 쿠폰을 업데이트할 때` {
+
+        @Test
+        fun `사용자 쿠폰 정보가 업데이트된다`() {
+            // given
+            val coupon = jpaCouponRepository.saveAndFlush(CouponFixture.`고정 할인 5000원 쿠폰`.toEntity())
+            val userCoupon = jpaUserCouponRepository.saveAndFlush(UserCouponFixture.기본.toEntity(coupon))
+
+            val fixedTime = LocalDateTime.parse("2025-01-01T00:00:00")
+            val clock = Clock.fixed(fixedTime.atZone(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault())
+            userCoupon.use(BigDecimal("10000"), clock)
+
+            // when
+            cut.update(userCoupon)
+
+            // then
+            val actual = jpaUserCouponRepository.findByIdOrNull(userCoupon.id)
+            assertThat(actual?.usedAt).isEqualTo(LocalDateTime.parse("2025-01-01T00:00:00"))
+        }
+
+        @Test
+        fun `업데이트 후에도 쿠폰 정보는 유지된다`() {
+            // given
+            val coupon = jpaCouponRepository.saveAndFlush(CouponFixture.`고정 할인 5000원 쿠폰`.toEntity())
+            val userCoupon = jpaUserCouponRepository.saveAndFlush(UserCouponFixture.기본.toEntity(coupon))
+
+            // when
+            userCoupon.use(BigDecimal("10000"))
+            val updatedUserCoupon = cut.update(userCoupon)
+
+            // then
+            assertThat(updatedUserCoupon)
+                .extracting(
+                    "userId",
+                    "coupon.id",
+                    "coupon.name",
+                    "issuedAt"
+                ).containsExactly(
+                    userCoupon.userId,
+                    coupon.id,
+                    "5000원 할인 쿠폰",
+                    userCoupon.issuedAt
                 )
         }
     }
