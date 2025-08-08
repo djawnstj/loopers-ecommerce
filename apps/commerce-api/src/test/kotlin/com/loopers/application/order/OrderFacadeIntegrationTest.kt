@@ -102,6 +102,68 @@ class OrderFacadeIntegrationTest(
         }
 
         @Test
+        fun `없는 쿠폰으로 주문 요청 시 주문이 생성되지 않는다`() {
+            // given
+            val user = userRepository.save(UserFixture.기본.toEntity())
+            val brand = brandRepository.save(BrandFixture.기본.toEntity())
+            val product = productRepository.save(ProductFixture.`활성 상품 1`.toEntity(brand.id))
+            val productItem = productItemRepository.save(ProductItemFixture.`검은색 라지 만원`.toEntity(product))
+            userPointRepository.save(UserPointFixture.`5만 포인트`.toEntity(user.id))
+
+            val nonExistentCouponId = 999L
+            val command = CreateOrderCommand(
+                user.loginId.value,
+                listOf(CreateOrderCommand.OrderItemSummary(productItem.id, 1)),
+                nonExistentCouponId
+            )
+
+            // when
+            assertThatThrownBy {
+                cut.createOrder(command)
+            }
+
+            // then
+            val orders = orderRepository.findAll()
+            assertAll(
+                { assertThat(orders).isEmpty() },
+                { assertThat(TransactionTraceHolder.get().rollbackOnly).isTrue() }
+            )
+        }
+
+        @Test
+        fun `사용한 쿠폰으로 주문 요청 시 주문이 생성되지 않는다`() {
+            // given
+            val user = userRepository.save(UserFixture.기본.toEntity())
+            val brand = brandRepository.save(BrandFixture.기본.toEntity())
+            val product = productRepository.save(ProductFixture.`활성 상품 1`.toEntity(brand.id))
+            val productItem = productItemRepository.save(ProductItemFixture.`검은색 라지 만원`.toEntity(product))
+            userPointRepository.save(UserPointFixture.`5만 포인트`.toEntity(user.id))
+
+            val coupon = couponRepository.save(CouponFixture.`고정 할인 5000원 쿠폰`.toEntity())
+            val userCoupon = UserCouponFixture.기본.toEntity(coupon = coupon, userId = user.id)
+            userCoupon.use(BigDecimal("10000"))
+            userCouponRepository.save(userCoupon)
+
+            val command = CreateOrderCommand(
+                user.loginId.value,
+                listOf(CreateOrderCommand.OrderItemSummary(productItem.id, 1)),
+                coupon.id
+            )
+
+            // when
+            assertThatThrownBy {
+                cut.createOrder(command)
+            }
+
+            // then
+            val orders = orderRepository.findAll()
+            assertAll(
+                { assertThat(orders).isEmpty() },
+                { assertThat(TransactionTraceHolder.get().rollbackOnly).isTrue() }
+            )
+        }
+
+        @Test
         fun `주문이 생성된다`() {
             // given
             val user = userRepository.save(UserFixture.기본.toEntity())
@@ -172,8 +234,8 @@ class OrderFacadeIntegrationTest(
             cut.createOrder(command)
 
             // then
-            val actual = productItemRepository.findById(productItem.id).get()
-            assertThat(actual.quantity).isEqualTo(Quantity(7))
+            val actual = productItemRepository.findByIdOrNull(productItem.id)
+            assertThat(actual?.quantity).isEqualTo(Quantity(7))
         }
 
         @Test

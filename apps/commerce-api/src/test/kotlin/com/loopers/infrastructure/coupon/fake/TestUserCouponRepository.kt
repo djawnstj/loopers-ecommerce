@@ -5,11 +5,11 @@ import com.loopers.domain.coupon.UserCouponRepository
 
 class TestUserCouponRepository : UserCouponRepository {
     private val userCoupons = mutableMapOf<Long, UserCoupon>()
-    private var idSequence = 0L
+    private var nextId = 1L
 
     fun clear() {
         userCoupons.clear()
-        idSequence = 0L
+        nextId = 1L
     }
 
     fun size(): Int = userCoupons.size
@@ -17,8 +17,11 @@ class TestUserCouponRepository : UserCouponRepository {
     fun findAll(): List<UserCoupon> = userCoupons.values.toList()
 
     fun save(userCoupon: UserCoupon): UserCoupon {
-        val id = ++idSequence
-        userCoupons[id] = userCoupon
+        val idField = userCoupon.javaClass.superclass.getDeclaredField("id")
+        idField.isAccessible = true
+        idField.set(userCoupon, nextId++)
+
+        userCoupons[userCoupon.id] = userCoupon
         return userCoupon
     }
 
@@ -28,5 +31,11 @@ class TestUserCouponRepository : UserCouponRepository {
                     userCoupon.coupon.id == couponId &&
                     userCoupon.deletedAt == null
         }
+    }
+
+    override fun update(userCoupon: UserCoupon): UserCoupon {
+        userCoupons[userCoupon.id] = userCoupon
+
+        return userCoupon
     }
 }

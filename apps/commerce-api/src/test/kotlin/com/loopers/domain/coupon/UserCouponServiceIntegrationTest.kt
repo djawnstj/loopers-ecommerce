@@ -68,5 +68,21 @@ class UserCouponServiceIntegrationTest(
                 .extracting("errorType", "message")
                 .containsExactly(ErrorType.USER_COUPON_NOT_FOUND, "회원 식별자 1 회원이 가진 999 쿠폰을 찾을 수 없습니다.")
         }
+
+        @Test
+        fun `고정 할인 쿠폰 사용하여 계산된 결제 금액이 반환된다`() {
+            // given
+            val userId = 1L
+            val coupon = couponRepository.save(CouponFixture.`고정 할인 5000원 쿠폰`.toEntity())
+            userCouponRepository.save(UserCouponFixture.기본.toEntity(coupon = coupon, userId = userId))
+            val totalAmount = BigDecimal("10000")
+            val param = GetUserCouponDetailParam(userId, coupon.id, totalAmount)
+
+            // when
+            val actual = cut.calculatePayPrice(param)
+
+            // then
+            assertThat(actual).isEqualByComparingTo(BigDecimal("5000"))
+        }
     }
 }
