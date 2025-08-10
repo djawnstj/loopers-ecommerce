@@ -1,5 +1,7 @@
 package com.loopers.config.redis
 
+import io.lettuce.core.ReadFrom
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -15,17 +17,42 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
 class RedisConfig(
     private val redisProperties: RedisProperties,
 ) {
+    companion object {
+        private const val CONNECTION_MASTER = "redisConnectionMaster"
+        const val REDIS_TEMPLATE_MASTER = "redisTemplateMaster"
+    }
+
     @Primary
     @Bean
     fun defaultRedisConnectionFactory(): LettuceConnectionFactory {
         val (database, master, replicas) = redisProperties
-        return lettuceConnectionFactory(database, master, replicas)
+        return lettuceConnectionFactory(database, master, replicas) {
+            readFrom(ReadFrom.REPLICA_PREFERRED)
+        }
+    }
+
+    @Qualifier(CONNECTION_MASTER)
+    @Bean
+    fun masterRedisConnectionFactory(): LettuceConnectionFactory {
+        val (database, master, replicas) = redisProperties
+        return lettuceConnectionFactory(database, master, replicas) {
+            readFrom(ReadFrom.MASTER)
+        }
     }
 
     @Primary
     @Bean
     fun defaultRedisTemplate(
         lettuceConnectionFactory: LettuceConnectionFactory,
+    ): RedisTemplate<*, *> {
+        return RedisTemplate<String, String>()
+            .defaultRedisTemplate(lettuceConnectionFactory)
+    }
+
+    @Qualifier(REDIS_TEMPLATE_MASTER)
+    @Bean
+    fun masterRedisTemplate(
+        @Qualifier(CONNECTION_MASTER) lettuceConnectionFactory: LettuceConnectionFactory,
     ): RedisTemplate<*, *> {
         return RedisTemplate<String, String>()
             .defaultRedisTemplate(lettuceConnectionFactory)
