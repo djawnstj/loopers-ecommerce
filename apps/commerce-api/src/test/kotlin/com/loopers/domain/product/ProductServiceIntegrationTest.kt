@@ -4,6 +4,7 @@ import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.vo.LikeCount
 import com.loopers.domain.product.vo.ProductStatusType
+import com.loopers.domain.product.vo.Quantity
 import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.product.ProductItemFixture
@@ -12,9 +13,6 @@ import com.loopers.infrastructure.brand.JpaBrandRepository
 import com.loopers.infrastructure.product.JpaProductItemRepository
 import com.loopers.infrastructure.product.JpaProductLikeCountRepository
 import com.loopers.infrastructure.product.JpaProductRepository
-import com.loopers.infrastructure.product.fake.TestProductItemRepository
-import com.loopers.infrastructure.product.fake.TestProductLikeCountRepository
-import com.loopers.infrastructure.product.fake.TestProductRepository
 import com.loopers.support.IntegrationTestSupport
 import com.loopers.support.enums.sort.ProductSortType
 import com.loopers.support.error.CoreException
@@ -24,9 +22,11 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertAll
 import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDateTime
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class ProductServiceIntegrationTest(
     private val cut: ProductService,
@@ -378,6 +378,41 @@ class ProductServiceIntegrationTest(
                     Tuple.tuple("빨간색 라지", 5),
                 )
         }
+
+        @Test
+        fun `동시에 재고 차감 요청이 들어와도 정확하게 재고 차감된다`() {
+            // given
+            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
+            val productItem = jpaProductItemRepository.saveAndFlush(ProductItemFixture.`재고 10개`.toEntity(product))
+
+            val threadCount = 5
+            val deductQuantityPerThread = 2
+            val executor = Executors.newFixedThreadPool(threadCount)
+            val latch = CountDownLatch(threadCount)
+
+            // when
+            repeat(threadCount) {
+                executor.submit {
+                    try {
+                        val param = DeductProductItemsQuantityParam(
+                            listOf(
+                                DeductProductItemsQuantityParam.DeductItem(productItem.id, deductQuantityPerThread),
+                            ),
+                        )
+                        cut.deductProductItemsQuantity(param)
+                    } finally {
+                        latch.countDown()
+                    }
+                }
+            }
+
+            latch.await(10, TimeUnit.SECONDS)
+            executor.shutdown()
+
+            // then
+            val actual = jpaProductItemRepository.findByIdOrNull(productItem.id)
+            assertThat(actual?.quantity).isEqualTo(Quantity(0))
+        }
     }
 
     @Nested
@@ -411,6 +446,57 @@ class ProductServiceIntegrationTest(
             val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
             assertThat(actual?.count?.value).isEqualTo(1L)
         }
+
+        @Test
+        fun `좋아요 수를 증가시키면 낙관적 락 버전이 증가한다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
+            val savedLikeCount = jpaProductLikeCountRepository.save(productLikeCount)
+            val originalVersion = savedLikeCount.version
+
+            // when
+            cut.increaseProductLikeCount(product.id)
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual?.version).isEqualTo(originalVersion + 1)
+        }
+
+        @Test
+        fun `재시도 횟수를 초과하면 CoreException FAILED_UPDATE_PRODUCT_LIKE_COUNT 예외가 터진다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
+            jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
+
+            val threadCount = 20
+            val executor = Executors.newFixedThreadPool(threadCount)
+            val latch = CountDownLatch(threadCount)
+            val actual = mutableListOf<Exception>()
+
+            // when
+            repeat(threadCount) {
+                executor.submit {
+                    try {
+                        cut.increaseProductLikeCount(product.id)
+                    } catch (e: Exception) {
+                        synchronized(actual) {
+                            actual.add(e)
+                        }
+                    } finally {
+                        latch.countDown()
+                    }
+                }
+            }
+
+            latch.await()
+            executor.shutdown()
+
+            // then
+            assertThat(actual).isNotEmpty
+                .allMatch { it is CoreException && it.errorType == ErrorType.FAILED_UPDATE_PRODUCT_LIKE_COUNT }
+        }
     }
 
     @Nested
@@ -443,6 +529,57 @@ class ProductServiceIntegrationTest(
             // then
             val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
             assertThat(actual?.count?.value).isEqualTo(0L)
+        }
+
+        @Test
+        fun `좋아요 수를 차감시키면 낙관적 락 버전이 증가한다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
+            val savedLikeCount = jpaProductLikeCountRepository.save(productLikeCount)
+            val originalVersion = savedLikeCount.version
+
+            // when
+            cut.decreaseProductLikeCount(product.id)
+
+            // then
+            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            assertThat(actual?.version).isEqualTo(originalVersion + 1)
+        }
+
+        @Test
+        fun `재시도 횟수를 초과하면 CoreException FAILED_UPDATE_PRODUCT_LIKE_COUNT 예외가 터진다`() {
+            // given
+            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
+            jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
+
+            val threadCount = 20
+            val executor = Executors.newFixedThreadPool(threadCount)
+            val latch = CountDownLatch(threadCount)
+            val actual = mutableListOf<Exception>()
+
+            // when
+            repeat(threadCount) {
+                executor.submit {
+                    try {
+                        cut.decreaseProductLikeCount(product.id)
+                    } catch (e: Exception) {
+                        synchronized(actual) {
+                            actual.add(e)
+                        }
+                    } finally {
+                        latch.countDown()
+                    }
+                }
+            }
+
+            latch.await()
+            executor.shutdown()
+
+            // then
+            assertThat(actual).isNotEmpty
+                .allMatch { it is CoreException && it.errorType == ErrorType.FAILED_UPDATE_PRODUCT_LIKE_COUNT }
         }
     }
 }

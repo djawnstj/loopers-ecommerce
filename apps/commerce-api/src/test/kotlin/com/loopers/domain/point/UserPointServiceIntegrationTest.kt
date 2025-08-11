@@ -11,6 +11,9 @@ import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class UserPointServiceIntegrationTest(
     private val cut: UserPointService,
@@ -118,6 +121,38 @@ class UserPointServiceIntegrationTest(
             // then
             val actual = cut.getUserPoint(userId)
             assertThat(actual.balance.value).isEqualByComparingTo(BigDecimal("500.00"))
+        }
+
+        @Test
+        fun `동시에 같은 유저가 포인트를 사용해도 모두 정상 차감된다`() {
+            // given
+            val userId = 1L
+            val useAmount = BigDecimal("100.00")
+            userPointRepository.saveAndFlush(UserPointFixture.`1000 포인트`.toEntity(userId))
+
+            val threadCount = 5
+            val executor = Executors.newFixedThreadPool(threadCount)
+            val latch = CountDownLatch(threadCount)
+
+            // when
+            repeat(threadCount) {
+                executor.submit {
+                    try {
+                        cut.useUserPoint(userId, useAmount)
+                    } finally {
+                        latch.countDown()
+                    }
+                }
+            }
+
+            latch.await(10, TimeUnit.SECONDS)
+            executor.shutdown()
+
+            // then
+            val actual = userPointRepository.findAll()
+            assertThat(actual).hasSize(1)
+                .extracting("userId", "balance")
+                .containsExactly(Tuple.tuple(1L, BigDecimal("500.00")))
         }
     }
 }

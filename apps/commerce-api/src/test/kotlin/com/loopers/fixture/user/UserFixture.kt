@@ -12,6 +12,7 @@ sealed class UserFixture(
     data object 기본 : UserFixture()
     data object `로그인 ID 1` : UserFixture(loginId = "loginId1")
     data object `로그인 ID 2` : UserFixture(loginId = "loginId2")
+    data object `로그인 ID 3` : UserFixture(loginId = "loginId3")
 
     data object `잘못된 형식의 생년월일` : UserFixture(birthDay = "20241231")
 
@@ -45,4 +46,9 @@ sealed class UserFixture(
     data object `영어 대문자 + 소문자 + 숫자 10자 로그인 ID` : UserFixture(loginId = "ABCDEFGHi1")
 
     fun toEntity(): User = User(loginId, email, birthDay, gender)
+
+    companion object {
+        fun create(loginId: String, email: String = "email@domain.com", birthDay: String = "2025-01-01", gender: GenderType = GenderType.MEN): User =
+            User(loginId, email, birthDay, gender)
+    }
 }

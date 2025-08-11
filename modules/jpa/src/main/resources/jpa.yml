@@ -51,9 +51,27 @@ spring.config.activate.on-profile: test
 
 spring:
   jpa:
-    show-sql: true
     hibernate:
       ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+
+
+logging:
+  level:
+    org:
+      hibernate:
+        type: trace
+        SQL: debug
+        orm:
+          jdbc:
+            bind: trace
+      springframework:
+        orm:
+          jpa: debug
+        transaction: debug
 
 datasource:
   mysql-jpa:

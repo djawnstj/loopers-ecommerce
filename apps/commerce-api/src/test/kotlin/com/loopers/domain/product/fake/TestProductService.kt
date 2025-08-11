@@ -4,6 +4,7 @@ import com.loopers.domain.brand.Brand
 import com.loopers.domain.product.Product
 import com.loopers.domain.product.ProductDetailView
 import com.loopers.domain.product.ProductItem
+import com.loopers.domain.product.ProductItems
 import com.loopers.domain.product.ProductLikeCount
 import com.loopers.domain.product.ProductService
 import com.loopers.domain.product.params.DeductProductItemsQuantityParam
@@ -30,16 +31,16 @@ class TestProductService : ProductService {
     fun addProductItems(productItems: List<ProductItem>) {
         productItems.forEach(this::addProductItem)
     }
-    
+
     private fun addProductItem(productItem: ProductItem) {
         // Reflection을 사용하여 ID 설정
         val idField = productItem.javaClass.superclass.getDeclaredField("id")
         idField.isAccessible = true
         idField.set(productItem, nextId++)
-        
+
         this.productItems.add(productItem)
     }
-    
+
     private var nextId = 1L
 
     override fun getProducts(param: GetProductParam): List<Product> {
@@ -74,19 +75,19 @@ class TestProductService : ProductService {
         return ProductDetailView(productDetail, brandDetail, productLikeCount)
     }
 
-    override fun getProductItemsDetail(productItemIds: List<Long>): List<ProductItem> {
+    override fun getProductItemsDetailWithLock(productItemIds: List<Long>): ProductItems {
         val foundItems = productItems.filter { it.id in productItemIds }
 
         if (foundItems.size != productItemIds.size) {
             throw CoreException(ErrorType.PRODUCT_ITEM_NOT_FOUND, "일부 상품 아이템을 찾을 수 없습니다.")
         }
 
-        return foundItems
+        return ProductItems(foundItems.toMutableList())
     }
 
     override fun deductProductItemsQuantity(param: DeductProductItemsQuantityParam) {
         val productItemIds = param.items.map { it.productItemId }
-        val foundItems = getProductItemsDetail(productItemIds)
+        val foundItems = getProductItemsDetailWithLock(productItemIds)
 
         param.items.forEach { deductItem ->
             val productItem = foundItems.first { it.id == deductItem.productItemId }

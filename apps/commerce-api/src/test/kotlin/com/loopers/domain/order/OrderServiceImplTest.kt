@@ -2,6 +2,7 @@ package com.loopers.domain.order
 
 import com.loopers.domain.order.param.SubmitOrderParam
 import com.loopers.domain.product.ProductItem
+import com.loopers.domain.product.ProductItems
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.product.ProductItemFixture
 import com.loopers.infrastructure.order.fake.TestOrderRepository
@@ -26,7 +27,7 @@ class OrderServiceImplTest {
             val orderRepository = TestOrderRepository()
             val cut = OrderServiceImpl(orderRepository)
 
-            val param = SubmitOrderParam(1L, listOf())
+            val param = SubmitOrderParam(1L, listOf(), BigDecimal("10000"), BigDecimal("10000"))
 
             // when then
             assertThatThrownBy {
@@ -46,7 +47,7 @@ class OrderServiceImplTest {
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val productItem = ProductItem(product, "상품", BigDecimal("15000"), 1)
 
-            val param = SubmitOrderParam(userId, listOf(SubmitOrderParam.OrderItem(productItem, 1)))
+            val param = SubmitOrderParam(userId, listOf(SubmitOrderParam.OrderItem(productItem, 1)), BigDecimal("15000"), BigDecimal("15000"))
 
             // when
             val actual = cut.submitOrder(param)
@@ -67,6 +68,8 @@ class OrderServiceImplTest {
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val productItem1 = ProductItemFixture.`1 만원 상품`.toEntity(product)
             val productItem2 = ProductItemFixture.`2 만원 상품`.toEntity(product)
+            val totalAmount = BigDecimal("30000")
+            val payPrice = BigDecimal("30000")
 
             val param = SubmitOrderParam(
                 userId,
@@ -74,6 +77,8 @@ class OrderServiceImplTest {
                     SubmitOrderParam.OrderItem(productItem1, 1),
                     SubmitOrderParam.OrderItem(productItem2, 1),
                 ),
+                totalAmount,
+                payPrice,
             )
 
             // when
@@ -92,8 +97,10 @@ class OrderServiceImplTest {
             val userId = 1L
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val productItem = ProductItemFixture.`1 만원 상품`.toEntity(product)
+            val totalAmount = BigDecimal("10000")
+            val payPrice = BigDecimal("10000")
 
-            val param = SubmitOrderParam(userId, listOf(SubmitOrderParam.OrderItem(productItem, 1)))
+            val param = SubmitOrderParam(userId, listOf(SubmitOrderParam.OrderItem(productItem, 1)), totalAmount, payPrice)
 
             // when
             cut.submitOrder(param)
@@ -119,6 +126,8 @@ class OrderServiceImplTest {
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val productItem1 = ProductItemFixture.`1 만원 상품`.toEntity(product)
             val productItem2 = ProductItemFixture.`2 만원 상품`.toEntity(product)
+            val totalAmount = BigDecimal("10000")
+            val payPrice = BigDecimal("10000")
 
             val param = SubmitOrderParam(
                 userId,
@@ -126,6 +135,8 @@ class OrderServiceImplTest {
                     SubmitOrderParam.OrderItem(productItem1, 1),
                     SubmitOrderParam.OrderItem(productItem2, 1),
                 ),
+                totalAmount,
+                payPrice,
             )
 
             // when

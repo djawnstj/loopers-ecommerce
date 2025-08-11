@@ -21,7 +21,7 @@ class TestProductLikeCountRepository : ProductLikeCountRepository {
         nextId = 1L
     }
 
-    override fun findByProductId(productId: Long): ProductLikeCount? {
+    override fun findByProductIdWithOptimisticLock(productId: Long): ProductLikeCount? {
         return likeCountMap[productId]?.takeIf { it.deletedAt == null }
     }
 }
