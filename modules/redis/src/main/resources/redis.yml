@@ -27,6 +27,18 @@ datasource:
         port: 6380
 
 ---
+spring.config.activate.on-profile: stress-test
+
+datasource:
+  redis:
+    master:
+      host: localhost
+      port: 6379
+    replicas:
+      - host: localhost
+        port: 6380
+
+---
 spring.config.activate.on-profile: dev
 
 ---

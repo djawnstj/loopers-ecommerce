@@ -47,6 +47,23 @@ datasource:
       password: application
 
 ---
+spring.config.activate.on-profile: stress-test
+
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    defer-datasource-initialization: true
+
+datasource:
+  mysql-jpa:
+    main:
+      jdbc-url: jdbc:mysql://localhost:3306/loopers
+      username: root
+      password: 159357
+
+---
 spring.config.activate.on-profile: test
 
 spring:

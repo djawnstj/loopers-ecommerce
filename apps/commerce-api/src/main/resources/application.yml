@@ -16,7 +16,7 @@ spring:
   application:
     name: commerce-api
   profiles:
-    active: local
+    active: stress-test
   config:
     import:
       - jpa.yml
@@ -34,6 +34,16 @@ spring:
   config:
     activate:
       on-profile: local, test
+
+---
+spring:
+  config:
+    activate:
+      on-profile: stress-test
+  sql:
+    init:
+      mode: never
+      data-locations: classpath:data/stress_test_data.sql
 
 ---
 spring:

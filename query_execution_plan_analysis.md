@@ -1,0 +1,106 @@
+# 쿼리 실행계획 분석
+
+## 분석 대상 쿼리
+```sql
+select p.*
+from product as p
+join product_like_count as plc
+on p.id = plc.product_id
+where brand_id = 1
+order by plc.count desc;
+```
+
+## 실행계획 개요
+
+| 항목 | 값 |
+|------|-----|
+| 총 쿼리 비용 | 12,969,986.74 |
+| 정렬 비용 | 995,657.61 |
+| 정렬 방식 | Filesort |
+
+## 상세 실행계획
+
+### 1단계: product_like_count 테이블 스캔 (plc)
+
+| 항목 | 값 | 설명 |
+|------|-----|------|
+| **테이블명** | product_like_count (plc) | 첫 번째로 접근하는 테이블 |
+| **접근 방식** | ALL | 전체 테이블 스캔 |
+| **스캔 행수** | 9,956,576 | 전체 레코드를 모두 스캔 |
+| **생성 행수** | 9,956,576 | 조인에 참여하는 행수 |
+| **필터링 비율** | 100.00% | 모든 행이 다음 단계로 전달 |
+| **읽기 비용** | 38,831.16 | I/O 비용 |
+| **평가 비용** | 995,657.60 | CPU 비용 |
+| **누적 비용** | 1,034,488.76 | 이 단계까지의 총비용 |
+| **데이터 크기** | 607MB | 읽어들인 데이터 크기 |
+
+### 2단계: product 테이블 조인 (p)
+
+| 항목 | 값 | 설명 |
+|------|-----|------|
+| **테이블명** | product (p) | 두 번째로 조인되는 테이블 |
+| **접근 방식** | eq_ref | 기본키를 이용한 동등 조인 |
+| **사용 키** | PRIMARY | 기본키 인덱스 사용 |
+| **키 길이** | 8 bytes | BIGINT 타입 |
+| **참조 컬럼** | plc.product_id | 조인 조건 |
+| **스캔 행수** | 1 | 각 조인당 1개 행만 검사 |
+| **생성 행수** | 995,657 | 최종 결과 행수 |
+| **필터링 비율** | 10.00% | brand_id = 1 조건으로 90% 필터링 |
+| **읽기 비용** | 9,944,182.77 | I/O 비용 |
+| **평가 비용** | 99,565.76 | CPU 비용 |
+| **누적 비용** | 11,974,329.13 | 이 단계까지의 총비용 |
+| **데이터 크기** | 1GB | 읽어들인 데이터 크기 |
+| **추가 조건** | brand_id = 1 | WHERE 절 조건 |
+
+## 성능 문제점
+
+### 🚨 주요 성능 이슈
+
+1. **Full Table Scan**: `product_like_count` 테이블 전체 스캔 (9.9M 행)
+2. **Filesort**: ORDER BY로 인한 정렬 작업 (995K 비용)
+3. **높은 비용**: 총 1300만 단위의 높은 쿼리 비용
+4. **대용량 데이터 처리**: 1.6GB 데이터 처리
+
+## 성능 최적화 방안
+
+### 1. 인덱스 추가 (우선순위 높음)
+```sql
+-- product_like_count 테이블에 복합 인덱스 추가
+CREATE INDEX idx_plc_product_count ON product_like_count(product_id, count DESC);
+
+-- product 테이블의 brand_id 인덱스 확인/추가
+CREATE INDEX idx_product_brand_id ON product(brand_id);
+```
+
+### 2. 쿼리 재작성 고려
+```sql
+-- 서브쿼리를 이용한 최적화
+SELECT p.*
+FROM product p
+WHERE p.brand_id = 1
+  AND p.id IN (
+    SELECT plc.product_id 
+    FROM product_like_count plc 
+    WHERE plc.product_id = p.id
+  )
+ORDER BY (
+  SELECT plc.count 
+  FROM product_like_count plc 
+  WHERE plc.product_id = p.id
+) DESC;
+```
+
+### 3. 예상 성능 개선 효과
+
+| 최적화 방안 | 예상 개선율 | 설명 |
+|------------|------------|------|
+| 복합 인덱스 추가 | 80-90% | Full scan → Index range scan |
+| brand_id 인덱스 | 60-70% | 필터링 성능 향상 |
+| 쿼리 재작성 | 40-50% | 조인 순서 최적화 |
+
+## 모니터링 권장사항
+
+- **실행 시간**: 1초 이하 목표
+- **스캔 행수**: 100만 행 이하
+- **메모리 사용량**: 100MB 이하
+- **I/O 대기시간**: 50ms 이하
