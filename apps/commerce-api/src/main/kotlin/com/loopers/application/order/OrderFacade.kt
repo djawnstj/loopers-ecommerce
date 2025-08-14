@@ -22,7 +22,9 @@ class OrderFacade(
     fun createOrder(command: CreateOrderCommand) {
         val user = userService.getUserProfile(command.loginId)
         val productItems =
-            productService.getProductItemsDetailWithLock(command.orderItemSummaries.map(CreateOrderCommand.OrderItemSummary::productItemId))
+            productService.getProductItemsDetailWithLock(
+                command.orderItemSummaries.map(CreateOrderCommand.OrderItemSummary::productItemId),
+            )
 
         val payPrice = userCouponService.calculatePayPrice(command.toGetUserCouponDetailParam(user.id, productItems.totalAmount))
 

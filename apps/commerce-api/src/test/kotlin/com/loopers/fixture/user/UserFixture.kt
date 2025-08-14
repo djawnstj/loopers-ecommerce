@@ -48,7 +48,12 @@ sealed class UserFixture(
     fun toEntity(): User = User(loginId, email, birthDay, gender)
 
     companion object {
-        fun create(loginId: String, email: String = "email@domain.com", birthDay: String = "2025-01-01", gender: GenderType = GenderType.MEN): User =
+        fun create(
+            loginId: String,
+            email: String = "email@domain.com",
+            birthDay: String = "2025-01-01",
+            gender: GenderType = GenderType.MEN,
+        ): User =
             User(loginId, email, birthDay, gender)
     }
 }
