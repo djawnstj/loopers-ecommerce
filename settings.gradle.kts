@@ -36,3 +36,5 @@ pluginManagement {
         }
     }
 }
+
+include("supports:cache")

@@ -1,6 +1,9 @@
 package com.loopers.domain.product
 
+import com.loopers.cache.CacheRepository
+import com.loopers.cache.findAll
 import com.loopers.domain.brand.Brand
+import com.loopers.domain.product.cache.ProductCacheKeys
 import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.vo.LikeCount
@@ -28,9 +31,12 @@ interface ProductService {
 class ProductServiceImpl(
     private val productRepository: ProductRepository,
     private val productLikeCountRepository: ProductLikeCountRepository,
+    private val cache: CacheRepository,
 ) : ProductService {
-    override fun getProducts(param: GetProductParam): List<Product> =
-        productRepository.findBySortType(param.brandId, param.sortType, param.page, param.perPage)
+    override fun getProducts(param: GetProductParam): List<Product> {
+        val find: List<Product> = cache.findAll(ProductCacheKeys.GetProducts(param))
+        return productRepository.findBySortType(param.brandId, param.sortType, param.page, param.perPage)
+    }
 
     override fun getActiveProductInfo(id: Long): Product =
         productRepository.findActiveProductById(id) ?: throw CoreException(
