@@ -34,12 +34,12 @@ class TestOrderService : OrderService {
                     item.productItemPrice,
                     item.quantity,
                 )
-                
+
                 // OrderItem ID도 설정
                 val orderItemIdField = orderItem.javaClass.superclass.getDeclaredField("id")
                 orderItemIdField.isAccessible = true
                 orderItemIdField.set(orderItem, nextId++)
-                
+
                 orderItem
             }
         order.addItem(orderItems)

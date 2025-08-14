@@ -20,11 +20,13 @@ class UserCouponServiceImpl(
     override fun calculatePayPrice(param: GetUserCouponDetailParam): BigDecimal {
         if (param.couponId == null) return param.totalAmount
 
-        val userCoupon = (userCouponRepository.findByUserIdAndCouponIdWithOptimisticLock(param.userId, param.couponId)
+        val userCoupon = (
+            userCouponRepository.findByUserIdAndCouponIdWithOptimisticLock(param.userId, param.couponId)
             ?: throw CoreException(
                 ErrorType.USER_COUPON_NOT_FOUND,
                 "회원 식별자 ${param.userId} 회원이 가진 ${param.couponId} 쿠폰을 찾을 수 없습니다.",
-            ))
+            )
+        )
 
         val payPrice = userCoupon.use(param.totalAmount)
         userCouponRepository.update(userCoupon)

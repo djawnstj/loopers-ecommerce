@@ -3,6 +3,10 @@ plugins {
     `java-test-fixtures`
 }
 
+allOpen {
+    annotations("jakarta.persistence.Entity")
+}
+
 dependencies {
     // jpa
     api("org.springframework.boot:spring-boot-starter-data-jpa")

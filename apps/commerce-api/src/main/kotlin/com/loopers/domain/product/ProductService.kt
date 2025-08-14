@@ -31,10 +31,8 @@ interface ProductService {
 class ProductServiceImpl(
     private val productRepository: ProductRepository,
     private val productLikeCountRepository: ProductLikeCountRepository,
-    private val cache: CacheRepository,
 ) : ProductService {
     override fun getProducts(param: GetProductParam): List<Product> {
-        val find: List<Product> = cache.findAll(ProductCacheKeys.GetProducts(param))
         return productRepository.findBySortType(param.brandId, param.sortType, param.page, param.perPage)
     }
 
