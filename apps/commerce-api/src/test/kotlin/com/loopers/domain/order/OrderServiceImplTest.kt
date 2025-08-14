@@ -2,7 +2,6 @@ package com.loopers.domain.order
 
 import com.loopers.domain.order.param.SubmitOrderParam
 import com.loopers.domain.product.ProductItem
-import com.loopers.domain.product.ProductItems
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.product.ProductItemFixture
 import com.loopers.infrastructure.order.fake.TestOrderRepository

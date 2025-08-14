@@ -13,12 +13,12 @@ class TestUserPointService : UserPointService {
 
     override fun createInitialPoint(userId: Long): UserPoint {
         val userPoint = UserPoint(userId, Point(BigDecimal.ZERO))
-        
+
         // Reflection을 사용하여 ID 설정
         val idField = userPoint.javaClass.superclass.getDeclaredField("id")
         idField.isAccessible = true
         idField.set(userPoint, nextId++)
-        
+
         userPoints[userId] = userPoint
         return userPoint
     }
