@@ -14,6 +14,7 @@ import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.support.enums.sort.ProductSortType
 import jakarta.persistence.EntityManager
 import jakarta.persistence.LockModeType
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -38,6 +39,7 @@ class ProductRepositoryImpl(
             )
         }.filterNotNull()
 
+    @Lock(LockModeType.OPTIMISTIC)
     override fun findActiveProductById(id: Long): Product? = jpaProductRepository.findAll {
         select(
             entity(Product::class),
