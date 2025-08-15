@@ -114,7 +114,7 @@ class OrderFacadeIntegrationTest(
             val command = CreateOrderCommand(
                 user.loginId.value,
                 listOf(CreateOrderCommand.OrderItemSummary(productItem.id, 1)),
-                nonExistentCouponId
+                nonExistentCouponId,
             )
 
             // when
@@ -126,7 +126,7 @@ class OrderFacadeIntegrationTest(
             val orders = orderRepository.findAll()
             assertAll(
                 { assertThat(orders).isEmpty() },
-                { assertThat(TransactionTraceHolder.get().rollbackOnly).isTrue() }
+                { assertThat(TransactionTraceHolder.get().rollbackOnly).isTrue() },
             )
         }
 
@@ -147,7 +147,7 @@ class OrderFacadeIntegrationTest(
             val command = CreateOrderCommand(
                 user.loginId.value,
                 listOf(CreateOrderCommand.OrderItemSummary(productItem.id, 1)),
-                coupon.id
+                coupon.id,
             )
 
             // when
@@ -159,7 +159,7 @@ class OrderFacadeIntegrationTest(
             val orders = orderRepository.findAll()
             assertAll(
                 { assertThat(orders).isEmpty() },
-                { assertThat(TransactionTraceHolder.get().rollbackOnly).isTrue() }
+                { assertThat(TransactionTraceHolder.get().rollbackOnly).isTrue() },
             )
         }
 

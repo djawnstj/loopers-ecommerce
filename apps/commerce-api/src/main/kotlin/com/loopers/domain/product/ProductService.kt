@@ -3,7 +3,6 @@ package com.loopers.domain.product
 import com.loopers.domain.brand.Brand
 import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
-import com.loopers.domain.product.vo.LikeCount
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
 import org.springframework.dao.OptimisticLockingFailureException
@@ -27,7 +26,6 @@ interface ProductService {
 @Transactional(readOnly = true)
 class ProductServiceImpl(
     private val productRepository: ProductRepository,
-    private val productLikeCountRepository: ProductLikeCountRepository,
 ) : ProductService {
     override fun getProducts(param: GetProductParam): List<Product> =
         productRepository.findBySortType(param.brandId, param.sortType, param.page, param.perPage)
@@ -39,10 +37,7 @@ class ProductServiceImpl(
         )
 
     override fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView {
-        val productLikeCount =
-            productLikeCountRepository.findByProductIdWithOptimisticLock(productDetail.id)?.count ?: LikeCount.ZERO
-
-        return ProductDetailView(productDetail, brandDetail, productLikeCount)
+        return ProductDetailView(productDetail, brandDetail)
     }
 
     override fun getProductItemsDetailWithLock(productItemIds: List<Long>): ProductItems {
@@ -82,10 +77,7 @@ class ProductServiceImpl(
             "식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.",
         )
 
-        val productLikeCount = productLikeCountRepository.findByProductIdWithOptimisticLock(product.id)
-            ?: productLikeCountRepository.save(ProductLikeCount(id, 0))
-
-        productLikeCount.increase()
+        product.increaseLikeCount()
     }
 
     @Transactional
@@ -101,10 +93,7 @@ class ProductServiceImpl(
             "식별자가 $id 에 해당하는 상품 정보를 찾지 못했습니다.",
         )
 
-        val productLikeCount = productLikeCountRepository.findByProductIdWithOptimisticLock(product.id)
-            ?: productLikeCountRepository.save(ProductLikeCount(id, 0))
-
-        productLikeCount.decrease()
+        product.decreaseLikeCount()
     }
 
     @Recover

@@ -8,10 +8,8 @@ import com.loopers.domain.product.vo.Quantity
 import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.product.ProductItemFixture
-import com.loopers.fixture.product.ProductLikeCountFixture
 import com.loopers.infrastructure.brand.JpaBrandRepository
 import com.loopers.infrastructure.product.JpaProductItemRepository
-import com.loopers.infrastructure.product.JpaProductLikeCountRepository
 import com.loopers.infrastructure.product.JpaProductRepository
 import com.loopers.support.IntegrationTestSupport
 import com.loopers.support.enums.sort.ProductSortType
@@ -32,7 +30,6 @@ class ProductServiceIntegrationTest(
     private val cut: ProductService,
     private val jpaProductRepository: JpaProductRepository,
     private val jpaBrandRepository: JpaBrandRepository,
-    private val jpaProductLikeCountRepository: JpaProductLikeCountRepository,
     private val jpaProductItemRepository: JpaProductItemRepository,
 ) : IntegrationTestSupport() {
 
@@ -277,8 +274,6 @@ class ProductServiceIntegrationTest(
             // given
             val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
             val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity()
-            jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
 
             // when
             val actual = cut.aggregateProductDetail(product, brand)
@@ -296,7 +291,7 @@ class ProductServiceIntegrationTest(
                     LocalDateTime.parse("2025-01-01T00:00:00"),
                     ProductStatusType.ACTIVE,
                     "활성브랜드",
-                    10L,
+                    0L,
                 )
         }
 
@@ -305,22 +300,6 @@ class ProductServiceIntegrationTest(
             // given
             val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
             val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
-
-            // when
-            val actual = cut.aggregateProductDetail(product, brand)
-
-            // then
-            assertThat(actual.likeCount).isEqualTo(LikeCount.ZERO)
-        }
-
-        @Test
-        fun `삭제된 좋아요 수 정보는 0으로 설정된다`() {
-            // given
-            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
-            val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(productId = product.id)
-                .also(ProductLikeCount::delete)
-            jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
 
             // when
             val actual = cut.aggregateProductDetail(product, brand)
@@ -423,43 +402,25 @@ class ProductServiceIntegrationTest(
             // given
             val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
 
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
-            jpaProductLikeCountRepository.save(productLikeCount)
-
             // when
             cut.increaseProductLikeCount(product.id)
 
             // then
-            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
-            assertThat(actual?.count?.value).isEqualTo(11L)
-        }
-
-        @Test
-        fun `좋아요 수가 없으면 새로 생성하여 증가시킨다`() {
-            // given
-            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
-
-            // when
-            cut.increaseProductLikeCount(product.id)
-
-            // then
-            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
-            assertThat(actual?.count?.value).isEqualTo(1L)
+            val actual = jpaProductRepository.findByIdOrNull(1L)
+            assertThat(actual?.likeCount?.value).isEqualTo(1L)
         }
 
         @Test
         fun `좋아요 수를 증가시키면 낙관적 락 버전이 증가한다`() {
             // given
             val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
-            val savedLikeCount = jpaProductLikeCountRepository.save(productLikeCount)
-            val originalVersion = savedLikeCount.version
+            val originalVersion = product.version
 
             // when
             cut.increaseProductLikeCount(product.id)
 
             // then
-            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            val actual = jpaProductRepository.findByIdOrNull(1L)
             assertThat(actual?.version).isEqualTo(originalVersion + 1)
         }
 
@@ -467,8 +428,6 @@ class ProductServiceIntegrationTest(
         fun `재시도 횟수를 초과하면 CoreException FAILED_UPDATE_PRODUCT_LIKE_COUNT 예외가 터진다`() {
             // given
             val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
-            jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
 
             val threadCount = 20
             val executor = Executors.newFixedThreadPool(threadCount)
@@ -505,54 +464,43 @@ class ProductServiceIntegrationTest(
         @Test
         fun `기존 좋아요 수가 있으면 1 차감시킨다`() {
             // given
-            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
-
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
-            jpaProductLikeCountRepository.save(productLikeCount)
-
-            // when
-            cut.decreaseProductLikeCount(product.id)
-
-            // then
-            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
-            assertThat(actual?.count?.value).isEqualTo(9L)
-        }
-
-        @Test
-        fun `좋아요 수가 없으면 새로 생성하여 차감시킨다`() {
-            // given
-            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            product.increaseLikeCount()
+            jpaProductRepository.save(product)
 
             // when
             cut.decreaseProductLikeCount(product.id)
 
             // then
-            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
-            assertThat(actual?.count?.value).isEqualTo(0L)
+            val actual = jpaProductRepository.findByIdOrNull(1L)
+            assertThat(actual?.likeCount?.value).isEqualTo(0L)
         }
 
         @Test
         fun `좋아요 수를 차감시키면 낙관적 락 버전이 증가한다`() {
             // given
-            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
-            val savedLikeCount = jpaProductLikeCountRepository.save(productLikeCount)
-            val originalVersion = savedLikeCount.version
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            product.increaseLikeCount()
+            jpaProductRepository.saveAndFlush(product)
+            val originalVersion = product.version
 
             // when
             cut.decreaseProductLikeCount(product.id)
 
             // then
-            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            val actual = jpaProductRepository.findByIdOrNull(1L)
             assertThat(actual?.version).isEqualTo(originalVersion + 1)
         }
 
         @Test
         fun `재시도 횟수를 초과하면 CoreException FAILED_UPDATE_PRODUCT_LIKE_COUNT 예외가 터진다`() {
             // given
-            val product = jpaProductRepository.save(ProductFixture.`활성 상품 1`.toEntity())
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id)
-            jpaProductLikeCountRepository.saveAndFlush(productLikeCount)
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val likeCount = 100
+            repeat(likeCount) {
+                product.increaseLikeCount()
+            }
+            jpaProductRepository.saveAndFlush(product)
 
             val threadCount = 20
             val executor = Executors.newFixedThreadPool(threadCount)

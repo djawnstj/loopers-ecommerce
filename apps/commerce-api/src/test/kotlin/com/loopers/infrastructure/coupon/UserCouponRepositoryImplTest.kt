@@ -126,12 +126,12 @@ class UserCouponRepositoryImplTest(
                     "userId",
                     "coupon.id",
                     "coupon.name",
-                    "issuedAt"
+                    "issuedAt",
                 ).containsExactly(
                     userCoupon.userId,
                     coupon.id,
                     "5000원 할인 쿠폰",
-                    userCoupon.issuedAt
+                    userCoupon.issuedAt,
                 )
         }
     }

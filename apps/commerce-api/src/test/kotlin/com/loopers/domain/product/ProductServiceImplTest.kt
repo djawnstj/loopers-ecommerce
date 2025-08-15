@@ -30,7 +30,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val param = GetProductParam(null, null, 0, 10)
 
@@ -46,7 +46,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val product1 = ProductFixture.`활성 상품 1`.toEntity()
             val product2 = ProductFixture.`활성 상품 2`.toEntity()
@@ -76,7 +76,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -93,7 +93,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val nonExistentId = 999L
 
@@ -117,7 +117,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -143,7 +143,7 @@ class ProductServiceImplTest {
                     LocalDateTime.parse("2025-01-01T00:00:00"),
                     ProductStatusType.ACTIVE,
                     "활성브랜드",
-                    10L,
+                    0L,
                 )
         }
 
@@ -152,7 +152,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -171,7 +171,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -197,7 +197,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -226,7 +226,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -256,7 +256,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val param = DeductProductItemsQuantityParam(
                 items = listOf(
@@ -280,7 +280,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -316,7 +316,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             // when then
             assertThatThrownBy {
@@ -330,28 +330,7 @@ class ProductServiceImplTest {
         fun `기존 좋아요 수가 있으면 1 증가시킨다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
-
-            val product = ProductFixture.`활성 상품 1`.toEntity()
-            val savedProduct = productRepository.save(product)
-
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity()
-            productLikeCountRepository.save(productLikeCount)
-
-            // when
-            cut.increaseProductLikeCount(savedProduct.id)
-
-            // then
-            assertThat(productLikeCount.count.value).isEqualTo(11L)
-        }
-
-        @Test
-        fun `좋아요 수가 없으면 새로 생성하여 1로 설정한다`() {
-            // given
-            val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -360,11 +339,7 @@ class ProductServiceImplTest {
             cut.increaseProductLikeCount(savedProduct.id)
 
             // then
-            val actual = productLikeCountRepository.findByProductIdWithOptimisticLock(savedProduct.id)!!
-            assertAll(
-                { assertThat(actual.count.value).isEqualTo(1L) },
-                { assertThat(actual.productId).isEqualTo(savedProduct.id) },
-            )
+            assertThat(product.likeCount.value).isEqualTo(1L)
         }
     }
 
@@ -376,7 +351,7 @@ class ProductServiceImplTest {
             // given
             val productRepository = TestProductRepository()
             val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             // when then
             assertThatThrownBy {
@@ -390,41 +365,17 @@ class ProductServiceImplTest {
         fun `기존 좋아요 수가 있으면 1 차감시킨다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
+            val cut = ProductServiceImpl(productRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
-            val savedProduct = productRepository.save(product)
-
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity()
-            productLikeCountRepository.save(productLikeCount)
-
-            // when
-            cut.decreaseProductLikeCount(savedProduct.id)
-
-            // then
-            assertThat(productLikeCount.count.value).isEqualTo(9L)
-        }
-
-        @Test
-        fun `좋아요 수가 없으면 새로 생성하여 0으로 설정한다`() {
-            // given
-            val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository, productLikeCountRepository)
-
-            val product = ProductFixture.`활성 상품 1`.toEntity()
+            product.increaseLikeCount()
             val savedProduct = productRepository.save(product)
 
             // when
             cut.decreaseProductLikeCount(savedProduct.id)
 
             // then
-            val actual = productLikeCountRepository.findByProductIdWithOptimisticLock(savedProduct.id)!!
-            assertAll(
-                { assertThat(actual.count.value).isEqualTo(0L) },
-                { assertThat(actual.productId).isEqualTo(savedProduct.id) },
-            )
+            assertThat(product.likeCount.value).isEqualTo(0L)
         }
     }
 }
