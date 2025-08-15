@@ -49,7 +49,7 @@ order by plc.count desc;
 
 ```sql
 create index idx_product_brand_status_deleted
-    on product (brand_id, status, deleted_at);
+    on product (brand_id);
 
 create index idx_product_like_count_composite
     on product_like_count (product_id, count desc);
