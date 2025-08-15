@@ -1,5 +1,8 @@
 package com.loopers.domain.product
 
+import com.loopers.cache.CacheRepository
+import com.loopers.cache.findAll
+import com.loopers.domain.product.cache.ProductCacheKeys
 import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.vo.LikeCount
@@ -31,6 +34,7 @@ class ProductServiceIntegrationTest(
     private val jpaProductRepository: JpaProductRepository,
     private val jpaBrandRepository: JpaBrandRepository,
     private val jpaProductItemRepository: JpaProductItemRepository,
+    private val cacheRepository: CacheRepository,
 ) : IntegrationTestSupport() {
 
     @Nested
@@ -211,6 +215,64 @@ class ProductServiceIntegrationTest(
             assertThat(actual).hasSize(1)
                 .extracting("deletedAt")
                 .containsExactly(null)
+        }
+
+        @Test
+        fun `캐시에 데이터가 있으면 캐시에서 조회한다`() {
+            // given
+            val product1 = ProductFixture.create(name = "DB상품", brandId = 1L)
+            jpaProductRepository.saveAndFlush(product1)
+
+            val param = GetProductParam(
+                brandId = 1L,
+                sortType = null,
+                page = 0,
+                perPage = 10,
+            )
+
+            val products = jpaProductRepository.saveAllAndFlush(
+                listOf(
+                    ProductFixture.create(name = "캐시상품1"),
+                    ProductFixture.create(name = "캐시상품2"),
+                ),
+            )
+            val cacheKey = ProductCacheKeys.GetProducts(param)
+            cacheRepository.save(cacheKey, products)
+
+            // when
+            val actual = cut.getProducts(param)
+
+            // then
+            assertThat(actual).hasSize(2)
+                .extracting("name")
+                .containsExactlyInAnyOrder("캐시상품1", "캐시상품2")
+        }
+
+        @Test
+        fun `캐시가 비어있으면 DB에서 조회 후 캐시에 저장한다`() {
+            // given
+            val products = listOf(
+                ProductFixture.create(name = "DB상품1", brandId = 2L),
+                ProductFixture.create(name = "DB상품2", brandId = 2L),
+            )
+            jpaProductRepository.saveAllAndFlush(products)
+
+            val param = GetProductParam(
+                brandId = 2L,
+                sortType = null,
+                page = 0,
+                perPage = 10,
+            )
+
+            // when
+            cut.getProducts(param)
+
+            // then
+            val cacheKey = ProductCacheKeys.GetProducts(param)
+            val cachedAfterCall: List<Product> = cacheRepository.findAll(cacheKey)
+            assertThat(cachedAfterCall).hasSize(2)
+                .extracting("name")
+                .containsExactlyInAnyOrder("DB상품1", "DB상품2")
         }
     }
 

@@ -1,6 +1,9 @@
 package com.loopers.domain.product
 
+import com.loopers.cache.CacheRepository
+import com.loopers.cache.findAll
 import com.loopers.domain.brand.Brand
+import com.loopers.domain.product.cache.ProductCacheKeys
 import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.support.error.CoreException
@@ -26,9 +29,21 @@ interface ProductService {
 @Transactional(readOnly = true)
 class ProductServiceImpl(
     private val productRepository: ProductRepository,
+    private val cacheRepository: CacheRepository,
 ) : ProductService {
-    override fun getProducts(param: GetProductParam): List<Product> =
-        productRepository.findBySortType(param.brandId, param.sortType, param.page, param.perPage)
+    override fun getProducts(param: GetProductParam): List<Product> {
+        val getProductsCacheKey = ProductCacheKeys.GetProducts(param)
+        val cache: List<Product> = cacheRepository.findAll(getProductsCacheKey)
+
+        if (cache.isNotEmpty()) {
+            return cache
+        }
+
+        val results = productRepository.findBySortType(param.brandId, param.sortType, param.page, param.perPage)
+        cacheRepository.save(getProductsCacheKey, results)
+
+        return results
+    }
 
     override fun getActiveProductInfo(id: Long): Product =
         productRepository.findActiveProductById(id) ?: throw CoreException(

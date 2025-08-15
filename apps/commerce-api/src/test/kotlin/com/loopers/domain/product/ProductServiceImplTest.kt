@@ -1,5 +1,6 @@
 package com.loopers.domain.product
 
+import com.loopers.domain.product.cache.ProductCacheKeys
 import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.vo.LikeCount
@@ -7,17 +8,17 @@ import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.product.ProductItemFixture
-import com.loopers.fixture.product.ProductLikeCountFixture
-import com.loopers.infrastructure.product.fake.TestProductLikeCountRepository
 import com.loopers.infrastructure.product.fake.TestProductRepository
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
+import com.loopers.support.fake.TestCacheRepository
+import io.mockk.spyk
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertAll
 import java.time.LocalDateTime
 
 class ProductServiceImplTest {
@@ -29,8 +30,8 @@ class ProductServiceImplTest {
         fun `조회 결과가 없다면 빈 목록을 반환 한다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val param = GetProductParam(null, null, 0, 10)
 
@@ -45,8 +46,8 @@ class ProductServiceImplTest {
         fun `조회 결과를 반환 한다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val product1 = ProductFixture.`활성 상품 1`.toEntity()
             val product2 = ProductFixture.`활성 상품 2`.toEntity()
@@ -66,6 +67,57 @@ class ProductServiceImplTest {
                     Tuple.tuple("활성상품 2", ProductStatusType.ACTIVE),
                 )
         }
+
+        @Test
+        fun `캐시에 데이터가 있으면 캐시에서 조회한다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
+
+            // DB에 데이터 저장
+            val dbProduct = ProductFixture.create(name = "DB상품")
+            productRepository.save(dbProduct)
+
+            val param = GetProductParam(brandId = null, sortType = null, page = 0, perPage = 10)
+            val cacheKey = ProductCacheKeys.GetProducts(param)
+
+            // 캐시에 다른 데이터 직접 저장
+            val cachedProducts = listOf(
+                ProductFixture.create(name = "캐시상품1"),
+                ProductFixture.create(name = "캐시상품2"),
+            )
+            cacheRepository.save(cacheKey, cachedProducts)
+
+            // when
+            val actual = cut.getProducts(param)
+
+            // then
+            assertThat(actual).hasSize(2)
+                .extracting("name")
+                .containsExactlyInAnyOrder("캐시상품1", "캐시상품2")
+        }
+
+        @Test
+        fun `캐시가 비어있으면 DB에서 조회 후 캐시에 저장한다`() {
+            // given
+            val productRepository = TestProductRepository()
+            val testCacheRepository = TestCacheRepository()
+            val cacheRepository = spyk(testCacheRepository)
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
+
+            val product = ProductFixture.기본.toEntity()
+            productRepository.save(product)
+
+            val param = GetProductParam(brandId = null, sortType = null, page = 0, perPage = 10)
+
+            // when
+            cut.getProducts(param)
+
+            // then
+            val cacheKey = ProductCacheKeys.GetProducts(param)
+            verify(exactly = 1) { cacheRepository.save(cacheKey, listOf(product)) }
+        }
     }
 
     @Nested
@@ -75,8 +127,8 @@ class ProductServiceImplTest {
         fun `존재하는 상품 ID로 조회하면 해당 상품을 반환 한다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -92,8 +144,8 @@ class ProductServiceImplTest {
         fun `존재하지 않는 상품 ID로 조회하면 CoreException PRODUCT_ITEM_NOT_FOUND 예외를 던진다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val nonExistentId = 999L
 
@@ -116,16 +168,13 @@ class ProductServiceImplTest {
         fun `상품 정보와 브랜드 정보를 결합하여 ProductDetailView를 반환한다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
 
             val brand = BrandFixture.`활성 브랜드`.toEntity()
-
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity()
-            productLikeCountRepository.save(productLikeCount)
 
             // when
             val actual = cut.aggregateProductDetail(savedProduct, brand)
@@ -151,8 +200,8 @@ class ProductServiceImplTest {
         fun `좋아요 수 정보가 없으면 0으로 설정된다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -170,16 +219,13 @@ class ProductServiceImplTest {
         fun `삭제된 좋아요 수 정보는 0으로 설정된다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
 
             val brand = BrandFixture.`활성 브랜드`.toEntity()
-
-            val productLikeCount = ProductLikeCountFixture.`좋아요 10개`.toEntity().also(ProductLikeCount::delete)
-            productLikeCountRepository.save(productLikeCount)
 
             // when
             val actual = cut.aggregateProductDetail(savedProduct, brand)
@@ -196,8 +242,8 @@ class ProductServiceImplTest {
         fun `존재하는 상품 아이템 ID들로 조회하면 해당 상품 아이템들을 반환한다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -225,8 +271,8 @@ class ProductServiceImplTest {
         fun `일부 상품 아이템 ID가 존재하지 않으면 CoreException PRODUCT_ITEM_NOT_FOUND 예외를 던진다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -255,8 +301,8 @@ class ProductServiceImplTest {
         fun `존재하지 않는 상품 아이템 ID가 포함되면 CoreException PRODUCT_ITEM_NOT_FOUND 예외를 던진다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val param = DeductProductItemsQuantityParam(
                 items = listOf(
@@ -279,8 +325,8 @@ class ProductServiceImplTest {
         fun `존재하는 상품 아이템들의 수량을 정상적으로 차감한다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -315,8 +361,8 @@ class ProductServiceImplTest {
         fun `좋아요 대상이 되는 상품이 없다면 CoreException PRODUCT_NOT_FOUND 예외를 던진다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             // when then
             assertThatThrownBy {
@@ -330,7 +376,8 @@ class ProductServiceImplTest {
         fun `기존 좋아요 수가 있으면 1 증가시킨다`() {
             // given
             val productRepository = TestProductRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -350,8 +397,8 @@ class ProductServiceImplTest {
         fun `좋아요 대상이 되는 상품이 없다면 CoreException PRODUCT_NOT_FOUND 예외를 던진다`() {
             // given
             val productRepository = TestProductRepository()
-            val productLikeCountRepository = TestProductLikeCountRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             // when then
             assertThatThrownBy {
@@ -365,7 +412,8 @@ class ProductServiceImplTest {
         fun `기존 좋아요 수가 있으면 1 차감시킨다`() {
             // given
             val productRepository = TestProductRepository()
-            val cut = ProductServiceImpl(productRepository)
+            val cacheRepository = TestCacheRepository()
+            val cut = ProductServiceImpl(productRepository, cacheRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             product.increaseLikeCount()
