@@ -9,7 +9,6 @@ import com.loopers.domain.product.ProductLikeCount
 import com.loopers.domain.product.ProductService
 import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
-import com.loopers.domain.product.vo.LikeCount
 import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.support.enums.sort.ProductSortType
 import com.loopers.support.error.CoreException
@@ -67,12 +66,7 @@ class TestProductService : ProductService {
     }
 
     override fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView {
-        val productLikeCount = likeCountMap[productDetail.id]
-            ?.takeIf { it.deletedAt == null }
-            ?.count
-            ?: LikeCount.ZERO
-
-        return ProductDetailView(productDetail, brandDetail, productLikeCount)
+        return ProductDetailView(productDetail, brandDetail)
     }
 
     override fun getProductItemsDetailWithLock(productItemIds: List<Long>): ProductItems {

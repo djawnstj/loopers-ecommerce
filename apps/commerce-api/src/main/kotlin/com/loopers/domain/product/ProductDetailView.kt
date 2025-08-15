@@ -16,7 +16,7 @@ data class ProductDetailView(
     val likeCount: LikeCount,
 ) {
     companion object {
-        operator fun invoke(product: Product, brand: Brand, likeCount: LikeCount): ProductDetailView =
+        operator fun invoke(product: Product, brand: Brand): ProductDetailView =
             ProductDetailView(
                 product.id,
                 product.name,
@@ -25,7 +25,7 @@ data class ProductDetailView(
                 product.items,
                 brand.id,
                 brand.name,
-                likeCount,
+                product.likeCount,
             )
     }
 }

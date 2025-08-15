@@ -192,9 +192,9 @@ class LikeFacadeIntegrationTest(
             cut.createProductLike(command)
 
             // then
-            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            val actual = jpaProductRepository.findByIdOrNull(1L)
             assertThat(actual)
-                .extracting("productId", "count")
+                .extracting("id", "likeCount")
                 .containsExactly(product.id, 1L)
         }
 
@@ -225,8 +225,8 @@ class LikeFacadeIntegrationTest(
             executor.shutdown()
 
             // then
-            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
-            assertThat(actual?.count?.value).isEqualTo(2L)
+            val actual = jpaProductRepository.findByIdOrNull(1L)
+            assertThat(actual?.likeCount?.value).isEqualTo(2L)
         }
     }
 
@@ -267,9 +267,9 @@ class LikeFacadeIntegrationTest(
             cut.deleteProductLike(command)
 
             // then
-            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
+            val actual = jpaProductRepository.findByIdOrNull(1L)
             assertThat(actual)
-                .extracting("productId", "count")
+                .extracting("id", "likeCount")
                 .containsExactly(product.id, 0L)
         }
 
@@ -278,8 +278,12 @@ class LikeFacadeIntegrationTest(
             // given
             val user1 = jpaUserRepository.saveAndFlush(UserFixture.`로그인 ID 1`.toEntity())
             val user2 = jpaUserRepository.saveAndFlush(UserFixture.`로그인 ID 2`.toEntity())
-            val product = jpaProductRepository.saveAndFlush(ProductFixture.`활성 상품 1`.toEntity())
-            jpaProductLikeCountRepository.saveAndFlush(ProductLikeCountFixture.`좋아요 10개`.toEntity(product.id))
+            val product = ProductFixture.`활성 상품 1`.toEntity()
+            val likeCount = 10
+            repeat(likeCount) {
+                product.increaseLikeCount()
+            }
+            jpaProductRepository.saveAndFlush(product)
 
             val threadCount = 2
             val executor = Executors.newFixedThreadPool(threadCount)
@@ -301,8 +305,8 @@ class LikeFacadeIntegrationTest(
             executor.shutdown()
 
             // then
-            val actual = jpaProductLikeCountRepository.findByIdOrNull(1L)
-            assertThat(actual?.count?.value).isEqualTo(8L)
+            val actual = jpaProductRepository.findByIdOrNull(1L)
+            assertThat(actual?.likeCount?.value).isEqualTo(8L)
         }
     }
 }

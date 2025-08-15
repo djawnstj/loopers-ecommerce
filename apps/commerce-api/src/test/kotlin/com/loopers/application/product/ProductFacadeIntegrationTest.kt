@@ -161,7 +161,7 @@ class ProductFacadeIntegrationTest(
                     LocalDateTime.parse("2025-01-01T00:00:00"),
                     ProductStatusType.ACTIVE,
                     "활성브랜드",
-                    10L,
+                    0L,
                 )
         }
 
