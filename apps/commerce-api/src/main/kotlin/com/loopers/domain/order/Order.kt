@@ -2,10 +2,13 @@ package com.loopers.domain.order
 
 import com.loopers.domain.BaseEntity
 import com.loopers.domain.order.vo.Money
+import com.loopers.domain.order.vo.OrderStatusType
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.util.UUID
@@ -17,6 +20,7 @@ class Order private constructor(
     orderNumber: String,
     totalAmount: Money,
     payPrice: Money,
+    status: OrderStatusType,
 ) : BaseEntity() {
     var userId: Long = userId
         protected set
@@ -25,6 +29,10 @@ class Order private constructor(
     var totalAmount: Money = totalAmount
         protected set
     var payPrice: Money = payPrice
+        protected set
+
+    @Enumerated(EnumType.STRING)
+    var status: OrderStatusType = status
         protected set
 
     @Embedded
@@ -39,7 +47,10 @@ class Order private constructor(
     }
 
     companion object {
-        operator fun invoke(userId: Long, totalAmount: BigDecimal, payPrice: BigDecimal): Order =
-            Order(userId, UUID.randomUUID().toString(), Money(totalAmount), Money(payPrice))
+        operator fun invoke(userId: Long, totalAmount: BigDecimal, payPrice: BigDecimal, status: OrderStatusType): Order =
+            Order(userId, UUID.randomUUID().toString(), Money(totalAmount), Money(payPrice), status)
+
+        fun createNewOrder(userId: Long, totalAmount: BigDecimal, payPrice: BigDecimal): Order =
+            invoke(userId, totalAmount, payPrice, OrderStatusType.READY)
     }
 }
