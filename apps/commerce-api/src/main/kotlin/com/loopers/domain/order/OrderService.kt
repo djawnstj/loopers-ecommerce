@@ -1,11 +1,15 @@
 package com.loopers.domain.order
 
 import com.loopers.domain.order.param.SubmitOrderParam
+import com.loopers.support.error.CoreException
+import com.loopers.support.error.ErrorType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 interface OrderService {
     fun submitOrder(param: SubmitOrderParam): Order
+    fun completeOrder(id: Long)
+    fun cancelOrder(id: Long)
 }
 
 @Service
@@ -32,5 +36,17 @@ class OrderServiceImpl(
         order.addItem(orderItems)
 
         return orderRepository.save(order)
+    }
+
+    @Transactional
+    override fun completeOrder(id: Long) {
+        orderRepository.findById(id)?.complete()
+            ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+    }
+
+    @Transactional
+    override fun cancelOrder(id: Long) {
+        orderRepository.findById(id)?.cancel()
+            ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
     }
 }

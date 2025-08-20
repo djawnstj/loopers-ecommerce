@@ -1,7 +1,9 @@
 package com.loopers.domain.order
 
 import com.loopers.domain.order.param.SubmitOrderParam
+import com.loopers.domain.order.vo.OrderStatusType
 import com.loopers.domain.product.ProductItem
+import com.loopers.fixture.order.OrderFixture
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.product.ProductItemFixture
 import com.loopers.infrastructure.order.fake.TestOrderRepository
@@ -148,6 +150,78 @@ class OrderServiceImplTest {
                     tuple("검은색 라지", BigDecimal("10000"), 1),
                     tuple("검은색 라지", BigDecimal("20000"), 1),
                 )
+        }
+    }
+
+    @Nested
+    inner class `주문을 완료할 때` {
+        @Test
+        fun `존재하지 않는 주문을 완료하려 하면 CoreException ORDER_NOT_FOUND 예외를 던진다`() {
+            // given
+            val orderRepository = TestOrderRepository()
+            val cut = OrderServiceImpl(orderRepository)
+
+            val nonExistentId = 999L
+
+            // when then
+            assertThatThrownBy {
+                cut.completeOrder(nonExistentId)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType")
+                .isEqualTo(ErrorType.ORDER_NOT_FOUND)
+        }
+
+        @Test
+        fun `존재하는 주문을 완료하면 주문 상태가 COMPLETE로 변경된다`() {
+            // given
+            val orderRepository = TestOrderRepository()
+            val cut = OrderServiceImpl(orderRepository)
+
+            val order = OrderFixture.기본.toEntity()
+            val savedOrder = orderRepository.save(order)
+
+            // when
+            cut.completeOrder(savedOrder.id)
+
+            // then
+            val foundOrder = orderRepository.findById(savedOrder.id)
+            assertThat(foundOrder?.status).isEqualTo(OrderStatusType.COMPLETE)
+        }
+    }
+
+    @Nested
+    inner class `주문을 취소할 때` {
+        @Test
+        fun `존재하지 않는 주문을 취소하려 하면 CoreException ORDER_NOT_FOUND 예외를 던진다`() {
+            // given
+            val orderRepository = TestOrderRepository()
+            val cut = OrderServiceImpl(orderRepository)
+
+            val nonExistentId = 999L
+
+            // when then
+            assertThatThrownBy {
+                cut.cancelOrder(nonExistentId)
+            }.isInstanceOf(CoreException::class.java)
+                .extracting("errorType")
+                .isEqualTo(ErrorType.ORDER_NOT_FOUND)
+        }
+
+        @Test
+        fun `존재하는 주문을 취소하면 주문 상태가 CANCELED로 변경된다`() {
+            // given
+            val orderRepository = TestOrderRepository()
+            val cut = OrderServiceImpl(orderRepository)
+
+            val order = OrderFixture.기본.toEntity()
+            val savedOrder = orderRepository.save(order)
+
+            // when
+            cut.cancelOrder(savedOrder.id)
+
+            // then
+            val actual = orderRepository.findById(savedOrder.id)
+            assertThat(actual?.status).isEqualTo(OrderStatusType.CANCELED)
         }
     }
 }

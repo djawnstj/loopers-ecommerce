@@ -8,12 +8,27 @@ class TestOrderRepository : OrderRepository {
     private var nextId = 1L
 
     override fun save(order: Order): Order {
-        val idField = order.javaClass.superclass.getDeclaredField("id")
-        idField.isAccessible = true
-        idField.set(order, nextId++)
+        val existingOrder = orders.find { it.id == order.id }
+        if (existingOrder != null) {
+            // 기존 주문 업데이트
+            orders.remove(existingOrder)
+            orders.add(order)
+            return order
+        }
+        
+        // 새 주문 저장
+        if (order.id == 0L) {
+            val idField = order.javaClass.superclass.getDeclaredField("id")
+            idField.isAccessible = true
+            idField.set(order, nextId++)
+        }
 
         orders.add(order)
         return order
+    }
+
+    override fun findById(id: Long): Order? {
+        return orders.find { it.id == id }
     }
 
     fun findAll(): List<Order> = orders.toList()

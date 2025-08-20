@@ -46,6 +46,14 @@ class Order private constructor(
         this.orderItems.addItems(orderItems)
     }
 
+    fun complete() {
+        this.status = OrderStatusType.COMPLETE
+    }
+
+    fun cancel() {
+        this.status = OrderStatusType.CANCELED
+    }
+
     companion object {
         operator fun invoke(userId: Long, totalAmount: BigDecimal, payPrice: BigDecimal, status: OrderStatusType): Order =
             Order(userId, UUID.randomUUID().toString(), Money(totalAmount), Money(payPrice), status)
