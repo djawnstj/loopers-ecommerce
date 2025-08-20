@@ -126,4 +126,46 @@ class UserPointTest {
             assertThat(actual.value).isEqualByComparingTo(BigDecimal("500"))
         }
     }
+
+    @Nested
+    inner class `포인트 사용 가능 여부를 확인할 때` {
+        @Test
+        fun `잔액보다 적은 포인트는 사용 가능하다`() {
+            // given
+            val cut = UserPointFixture.`1000 포인트`.toEntity()
+            val amount = Point(BigDecimal("999.99"))
+
+            // when
+            val result = cut.usable(amount)
+
+            // then
+            assertThat(result).isTrue()
+        }
+
+        @Test
+        fun `잔액과 같은 포인트는 사용 가능하다`() {
+            // given
+            val cut = UserPointFixture.`1000 포인트`.toEntity()
+            val amount = Point(BigDecimal("1000"))
+
+            // when
+            val result = cut.usable(amount)
+
+            // then
+            assertThat(result).isTrue()
+        }
+
+        @Test
+        fun `잔액보다 많은 포인트는 사용 불가능하다`() {
+            // given
+            val cut = UserPointFixture.`500 포인트`.toEntity()
+            val amount = Point(BigDecimal("500.01"))
+
+            // when
+            val result = cut.usable(amount)
+
+            // then
+            assertThat(result).isFalse()
+        }
+    }
 }

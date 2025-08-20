@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 
 interface OrderService {
     fun submitOrder(param: SubmitOrderParam): Order
+    fun getOrderById(id: Long): Order
     fun completeOrder(id: Long)
     fun cancelOrder(id: Long)
 }
@@ -37,6 +38,9 @@ class OrderServiceImpl(
 
         return orderRepository.save(order)
     }
+
+    override fun getOrderById(id: Long): Order =
+        orderRepository.findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
 
     @Transactional
     override fun completeOrder(id: Long) {

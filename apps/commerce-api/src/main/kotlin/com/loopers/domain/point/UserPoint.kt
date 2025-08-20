@@ -24,17 +24,19 @@ class UserPoint(
         this.balance += amount
     }
 
-    private fun Point.validateChargeable() {
-        if (value <= BigDecimal.ZERO) {
-            throw CoreException(ErrorType.REQUIRED_POSITIVE_POINT_CHARGE_AMOUNT)
-        }
-    }
-
     fun deduct(amount: Point) {
         if (balance < amount) {
             throw CoreException(ErrorType.POINT_BALANCE_EXCEEDED)
         }
 
         balance -= amount
+    }
+
+    fun usable(amount: Point): Boolean = (balance >= amount)
+
+    private fun Point.validateChargeable() {
+        if (value <= BigDecimal.ZERO) {
+            throw CoreException(ErrorType.REQUIRED_POSITIVE_POINT_CHARGE_AMOUNT)
+        }
     }
 }
