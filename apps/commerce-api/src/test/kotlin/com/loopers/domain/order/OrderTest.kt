@@ -1,5 +1,6 @@
 package com.loopers.domain.order
 
+import com.loopers.domain.order.vo.OrderStatusType
 import com.loopers.fixture.order.OrderFixture
 import com.loopers.fixture.order.OrderItemFixture
 import com.loopers.support.error.CoreException
@@ -72,6 +73,38 @@ class OrderTest {
                     tuple(1L, "상품1", BigDecimal("10000")),
                     tuple(2L, "상품2", BigDecimal("20000")),
                 )
+        }
+    }
+
+    @Nested
+    inner class `주문을 완료할 때` {
+        @Test
+        fun `주문 상태가 COMPLETE 로 변경된다`() {
+            // given
+            val order = OrderFixture.기본.toEntity()
+            assertThat(order.status).isEqualTo(OrderStatusType.READY)
+
+            // when
+            order.complete()
+
+            // then
+            assertThat(order.status).isEqualTo(OrderStatusType.COMPLETE)
+        }
+    }
+
+    @Nested
+    inner class `주문을 취소할 때` {
+        @Test
+        fun `주문 상태가 CANCELED 로 변경된다`() {
+            // given
+            val order = OrderFixture.기본.toEntity()
+            assertThat(order.status).isEqualTo(OrderStatusType.READY)
+
+            // when
+            order.cancel()
+
+            // then
+            assertThat(order.status).isEqualTo(OrderStatusType.CANCELED)
         }
     }
 }

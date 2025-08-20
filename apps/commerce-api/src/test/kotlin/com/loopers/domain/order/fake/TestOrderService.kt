@@ -49,6 +49,20 @@ class TestOrderService : OrderService {
         return order
     }
 
+    override fun completeOrder(id: Long) {
+        val order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+        order.complete()
+    }
+
+    override fun cancelOrder(id: Long) {
+        val order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+        order.cancel()
+    }
+
+    private fun findById(id: Long): Order? {
+        return orders.find { it.id == id }
+    }
+
     fun addOrders(orders: List<Order>) {
         this.orders.addAll(orders)
     }
@@ -57,4 +71,6 @@ class TestOrderService : OrderService {
         orders.clear()
         nextId = 1L
     }
+
+    fun findAll(): List<Order> = orders.toList()
 }
