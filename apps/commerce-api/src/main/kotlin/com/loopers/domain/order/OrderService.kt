@@ -16,7 +16,7 @@ class OrderServiceImpl(
 
     @Transactional
     override fun submitOrder(param: SubmitOrderParam): Order {
-        val order = Order(param.userId, param.totalAmount, param.payPrice)
+        val order = Order.createNewOrder(param.userId, param.totalAmount, param.payPrice)
 
         val orderItems = param.orderItems
             .filter { it.quantity > 0 }

@@ -4,6 +4,7 @@ import com.loopers.domain.order.Order
 import com.loopers.domain.order.OrderItem
 import com.loopers.domain.order.OrderService
 import com.loopers.domain.order.param.SubmitOrderParam
+import com.loopers.domain.order.vo.OrderStatusType
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
 
@@ -17,7 +18,7 @@ class TestOrderService : OrderService {
         }
 
         val totalAmount = param.orderItems.sumOf(SubmitOrderParam.OrderItem::productItemPrice)
-        val order = Order(param.userId, totalAmount, totalAmount)
+        val order = Order(param.userId, totalAmount, totalAmount, OrderStatusType.READY)
 
         // Reflection을 사용하여 ID 설정
         val idField = order.javaClass.superclass.getDeclaredField("id")

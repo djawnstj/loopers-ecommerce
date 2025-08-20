@@ -2,6 +2,7 @@ package com.loopers.infrastructure.order
 
 import com.loopers.domain.order.Order
 import com.loopers.domain.order.OrderRepository
+import com.loopers.domain.order.vo.OrderStatusType
 import com.loopers.support.IntegrationTestSupport
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
@@ -19,7 +20,7 @@ class OrderRepositoryImplTest(
         @Test
         fun `주문 정보를 저장할 수 있다`() {
             // given
-            val order = Order(1L, BigDecimal("50000"), BigDecimal("50000"))
+            val order = Order(1L, BigDecimal("50000"), BigDecimal("50000"), OrderStatusType.READY)
 
             // when
             cut.save(order)
@@ -32,7 +33,7 @@ class OrderRepositoryImplTest(
         @Test
         fun `주문 정보를 저장 후 해당 주문을 조회하면 동일한 정보를 조회할 수 있다`() {
             // given
-            val order = Order(1L, BigDecimal("50000"), BigDecimal("50000"))
+            val order = Order(1L, BigDecimal("50000"), BigDecimal("50000"), OrderStatusType.READY)
 
             // when
             cut.save(order)
