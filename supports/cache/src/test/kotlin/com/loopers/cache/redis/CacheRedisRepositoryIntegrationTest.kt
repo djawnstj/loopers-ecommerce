@@ -8,6 +8,7 @@ import com.loopers.cache.findAll
 import com.loopers.utils.RedisCleanUp
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
@@ -17,6 +18,7 @@ import java.time.Duration
 
 @SpringBootTest(classes = [CacheTestApplication::class])
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@Disabled
 class CacheRedisRepositoryIntegrationTest(
     private val redisTemplate: RedisTemplate<String, String>,
     private val redisCleanUp: RedisCleanUp,

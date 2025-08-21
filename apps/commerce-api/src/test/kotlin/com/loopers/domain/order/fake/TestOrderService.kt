@@ -49,6 +49,8 @@ class TestOrderService : OrderService {
         return order
     }
 
+    override fun getOrderById(id: Long): Order = orders.find { it.id == id } ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+
     override fun completeOrder(id: Long) {
         val order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
         order.complete()
