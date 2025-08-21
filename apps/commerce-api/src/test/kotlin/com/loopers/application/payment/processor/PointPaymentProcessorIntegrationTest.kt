@@ -57,7 +57,7 @@ class PointPaymentProcessorIntegrationTest(
 
             val command = ProcessPointPayCommand(
                 userId = 2L,
-                orderId = savedOrder.id
+                orderNumber = savedOrder.orderNumber,
             )
 
             // when
@@ -88,7 +88,7 @@ class PointPaymentProcessorIntegrationTest(
 
             val command = ProcessPointPayCommand(
                 userId = 1L,
-                orderId = savedOrder.id
+                orderNumber = savedOrder.orderNumber
             )
 
             // when

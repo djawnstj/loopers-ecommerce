@@ -5,11 +5,11 @@ import com.loopers.domain.payment.vo.PaymentStatusType
 import com.loopers.domain.payment.vo.PaymentType
 import java.math.BigDecimal
 
-data class RecordFailedPaymentParam(
+data class RecordPendingPaymentParam(
     val orderId: Long,
     val paymentKey: String?,
     val amount: BigDecimal,
     val type: PaymentType,
 ) {
-    fun toEntity(): Payment = Payment(orderId, paymentKey, amount, type, PaymentStatusType.FAILED)
+    fun toEntity(): Payment = Payment(orderId, paymentKey, amount, type, PaymentStatusType.PENDING)
 }

@@ -1,11 +1,13 @@
 package com.loopers.application.payment.command
 
 import com.loopers.domain.payment.vo.PaymentType
-import java.math.BigDecimal
+import com.loopers.support.enums.payment.CardType
 
 data class ExecutePayCommand(
-    val loginId: Long,
+    val loginId: String,
     val paymentType: PaymentType,
     val orderNumber: String,
-    val amount: BigDecimal,
-)
+    val card: CardInfo?,
+) {
+    data class CardInfo(val cardType: CardType, val cardNo: String)
+}

@@ -1,18 +1,13 @@
 package com.loopers.domain.order
 
 import com.loopers.domain.order.param.SubmitOrderParam
-import com.loopers.domain.order.vo.OrderStatusType
-import com.loopers.fixture.order.OrderFixture
 import com.loopers.fixture.product.ProductFixture
 import com.loopers.fixture.product.ProductItemFixture
 import com.loopers.infrastructure.order.JpaOrderRepository
 import com.loopers.infrastructure.product.JpaProductItemRepository
 import com.loopers.infrastructure.product.JpaProductRepository
 import com.loopers.support.IntegrationTestSupport
-import com.loopers.support.error.CoreException
-import com.loopers.support.error.ErrorType
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -92,64 +87,6 @@ class OrderServiceIntegrationTest(
             assertThat(actual).isNotNull
                 .extracting("userId", "totalAmount", "orderNumber")
                 .containsExactly(1L, BigDecimal("10000.00"), order.orderNumber)
-        }
-    }
-
-    @Nested
-    inner class `주문을 완료할 때` {
-        @Test
-        fun `주문이 존재하지 않으면 CoreException ORDER_NOT_FOUND 예외를 던진다`() {
-            // given
-            val nonExistentId = 999L
-
-            // when then
-            assertThatThrownBy {
-                cut.completeOrder(nonExistentId)
-            }.isInstanceOf(CoreException::class.java)
-                .extracting("errorType")
-                .isEqualTo(ErrorType.ORDER_NOT_FOUND)
-        }
-
-        @Test
-        fun `주문의 상태가 COMPLETE 로 변경된다`() {
-            // given
-            val order = orderRepository.save(OrderFixture.기본.toEntity())
-
-            // when
-            cut.completeOrder(order.id)
-
-            // then
-            val actual = orderRepository.findByIdOrNull(order.id)
-            assertThat(actual?.status).isEqualTo(OrderStatusType.COMPLETE)
-        }
-    }
-
-    @Nested
-    inner class `주문을 취소할 때` {
-        @Test
-        fun `주문이 존재하지 않으면 CoreException ORDER_NOT_FOUND 예외를 던진다`() {
-            // given
-            val nonExistentId = 999L
-
-            // when then
-            assertThatThrownBy {
-                cut.cancelOrder(nonExistentId)
-            }.isInstanceOf(CoreException::class.java)
-                .extracting("errorType")
-                .isEqualTo(ErrorType.ORDER_NOT_FOUND)
-        }
-
-        @Test
-        fun `주문의 상태가 CANCELED로 변경된다`() {
-            // given
-            val order = orderRepository.save(OrderFixture.기본.toEntity())
-
-            // when
-            cut.cancelOrder(order.id)
-
-            // then
-            val actual = orderRepository.findByIdOrNull(order.id)
-            assertThat(actual?.status).isEqualTo(OrderStatusType.CANCELED)
         }
     }
 }

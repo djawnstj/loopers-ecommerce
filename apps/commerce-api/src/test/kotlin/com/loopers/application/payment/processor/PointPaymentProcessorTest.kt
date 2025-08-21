@@ -2,11 +2,13 @@ package com.loopers.application.payment.processor
 
 import com.loopers.application.payment.command.ProcessPointPayCommand
 import com.loopers.domain.order.fake.TestOrderService
+import com.loopers.domain.order.vo.OrderStatusType
 import com.loopers.domain.payment.fake.TestPaymentService
 import com.loopers.domain.payment.param.RecordFailedPaymentParam
 import com.loopers.domain.payment.param.RecordPaidPaymentParam
 import com.loopers.domain.payment.vo.PaymentType
 import com.loopers.domain.point.fake.TestUserPointService
+import com.loopers.domain.product.fake.TestProductService
 import com.loopers.fixture.order.OrderFixture
 import io.mockk.spyk
 import io.mockk.verify
@@ -25,7 +27,8 @@ class PointPaymentProcessorTest {
             val userPointService = TestUserPointService()
             val paymentService = TestPaymentService()
             val orderService = TestOrderService()
-            val cut = PointPaymentProcessor(userPointService, paymentService, orderService)
+            val productService = TestProductService()
+            val cut = PointPaymentProcessor(userPointService, paymentService, orderService, productService)
 
             // when
             val result = cut.support(PaymentType.POINT)
@@ -40,7 +43,8 @@ class PointPaymentProcessorTest {
             val userPointService = TestUserPointService()
             val paymentService = TestPaymentService()
             val orderService = TestOrderService()
-            val cut = PointPaymentProcessor(userPointService, paymentService, orderService)
+            val productService = TestProductService()
+            val cut = PointPaymentProcessor(userPointService, paymentService, orderService, productService)
 
             // when
             val result = cut.support(PaymentType.CARD)
@@ -61,7 +65,8 @@ class PointPaymentProcessorTest {
             val paymentService = spyk(testPaymentService)
             val testOrderService = TestOrderService()
             val orderService = spyk(testOrderService)
-            val cut = PointPaymentProcessor(userPointService, paymentService, orderService)
+            val productService = TestProductService()
+            val cut = PointPaymentProcessor(userPointService, paymentService, orderService, productService)
 
             val order = OrderFixture.`3만원 주문`.toEntity()
             testOrderService.addOrders(listOf(order))
@@ -70,7 +75,7 @@ class PointPaymentProcessorTest {
 
             val command = ProcessPointPayCommand(
                 userId = 2L,
-                orderId = order.id
+                orderNumber = order.orderNumber,
             )
 
             // when
@@ -79,7 +84,7 @@ class PointPaymentProcessorTest {
             // then
             verify(exactly = 1) {
                 paymentService.recordFailedPayment(
-                    RecordFailedPaymentParam(order.id, BigDecimal("30000"), PaymentType.POINT)
+                    RecordFailedPaymentParam(order.id, null, BigDecimal("30000"), PaymentType.POINT),
                 )
             }
         }
@@ -91,7 +96,8 @@ class PointPaymentProcessorTest {
             val paymentService = TestPaymentService()
             val testOrderService = TestOrderService()
             val orderService = spyk(testOrderService)
-            val cut = PointPaymentProcessor(userPointService, paymentService, orderService)
+            val productService = TestProductService()
+            val cut = PointPaymentProcessor(userPointService, paymentService, orderService, productService)
 
             val order = OrderFixture.기본.toEntity()
             testOrderService.addOrders(listOf(order))
@@ -100,14 +106,14 @@ class PointPaymentProcessorTest {
 
             val command = ProcessPointPayCommand(
                 userId = 1L,
-                orderId = order.id
+                orderNumber = order.orderNumber,
             )
 
             // when
             cut.process(command)
 
             // then
-            verify(exactly = 1) { orderService.cancelOrder(order.id) }
+            assertThat(order.status).isEqualTo(OrderStatusType.CANCELED)
         }
 
         @Test
@@ -118,7 +124,8 @@ class PointPaymentProcessorTest {
             val paymentService = TestPaymentService()
             val testOrderService = TestOrderService()
             val orderService = spyk(testOrderService)
-            val cut = PointPaymentProcessor(userPointService, paymentService, orderService)
+            val productService = TestProductService()
+            val cut = PointPaymentProcessor(userPointService, paymentService, orderService, productService)
 
             val order = OrderFixture.기본.toEntity()
             testOrderService.addOrders(listOf(order))
@@ -127,7 +134,7 @@ class PointPaymentProcessorTest {
 
             val command = ProcessPointPayCommand(
                 userId = 1L,
-                orderId = order.id
+                orderNumber = order.orderNumber,
             )
 
             // when
@@ -143,28 +150,28 @@ class PointPaymentProcessorTest {
             val userPointService = TestUserPointService()
             val testPaymentService = TestPaymentService()
             val paymentService = spyk(testPaymentService)
-            val testOrderService = TestOrderService()
-            val orderService = spyk(testOrderService)
-            val cut = PointPaymentProcessor(userPointService, paymentService, orderService)
+            val orderService = TestOrderService()
+            val productService = TestProductService()
+            val cut = PointPaymentProcessor(userPointService, paymentService, orderService, productService)
 
             val order = OrderFixture.`3만원 주문`.toEntity()
-            testOrderService.addOrders(listOf(order))
+            orderService.addOrders(listOf(order))
             userPointService.createInitialPoint(2L)
             userPointService.chargePoint(2L, BigDecimal("50000"))
 
             val command = ProcessPointPayCommand(
                 userId = 2L,
-                orderId = order.id
+                orderNumber = order.orderNumber,
             )
 
             // when
             cut.process(command)
 
             // then
-            verify(exactly = 1) { 
+            verify(exactly = 1) {
                 paymentService.recordPaidPayment(
-                    RecordPaidPaymentParam(order.id, BigDecimal("30000"), PaymentType.POINT)
-                ) 
+                    RecordPaidPaymentParam(order.id, null, BigDecimal("30000"), PaymentType.POINT),
+                )
             }
         }
 
@@ -175,7 +182,8 @@ class PointPaymentProcessorTest {
             val paymentService = TestPaymentService()
             val testOrderService = TestOrderService()
             val orderService = spyk(testOrderService)
-            val cut = PointPaymentProcessor(userPointService, paymentService, orderService)
+            val productService = TestProductService()
+            val cut = PointPaymentProcessor(userPointService, paymentService, orderService, productService)
 
             val order = OrderFixture.기본.toEntity()
             testOrderService.addOrders(listOf(order))
@@ -184,14 +192,14 @@ class PointPaymentProcessorTest {
 
             val command = ProcessPointPayCommand(
                 userId = 1L,
-                orderId = order.id
+                orderNumber = order.orderNumber,
             )
 
             // when
             cut.process(command)
 
             // then
-            verify(exactly = 1) { orderService.completeOrder(order.id) }
+            assertThat(order.status).isEqualTo(OrderStatusType.COMPLETE)
         }
     }
 }

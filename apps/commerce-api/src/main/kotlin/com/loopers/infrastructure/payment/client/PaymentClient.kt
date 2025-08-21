@@ -15,19 +15,19 @@ interface PaymentClient {
 
     @PostExchange
     fun processPayment(
-        @RequestHeader("X-USER-ID") userId: Long,
+        @RequestHeader("X-USER-ID") userId: Long = 1,
         @RequestBody request: PaymentRequest
     ): Mono<PaymentResponse>
 
     @GetExchange("/{transactionKey}")
     fun getPayment(
-        @RequestHeader("X-USER-ID") userId: Long,
+        @RequestHeader("X-USER-ID") userId: Long = 1,
         @PathVariable transactionKey: String
     ): Mono<PaymentResponse>
 
     @GetExchange
     fun getPaymentsByOrderId(
-        @RequestHeader("X-USER-ID") userId: Long,
+        @RequestHeader("X-USER-ID") userId: Long = 1,
         @RequestParam orderId: String
     ): Flux<PaymentResponse>
 }

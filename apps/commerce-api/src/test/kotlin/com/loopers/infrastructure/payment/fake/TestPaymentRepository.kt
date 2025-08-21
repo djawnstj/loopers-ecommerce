@@ -11,6 +11,8 @@ class TestPaymentRepository : PaymentRepository {
         return payment
     }
 
+    override fun findByPaymentKey(paymentKey: String): Payment? = payments.find { it.paymentKey == paymentKey }
+
     fun clear() {
         payments.clear()
     }

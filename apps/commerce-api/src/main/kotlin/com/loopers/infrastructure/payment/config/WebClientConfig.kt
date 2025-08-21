@@ -1,12 +1,13 @@
 package com.loopers.infrastructure.payment.config
 
+import io.netty.channel.ChannelOption
+import io.netty.handler.timeout.ReadTimeoutHandler
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.netty.http.client.HttpClient
-import reactor.netty.resources.ConnectionProvider
-import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 @Configuration
 class WebClientConfig {
@@ -16,16 +17,11 @@ class WebClientConfig {
 
     @Bean
     fun pgWebClient(): WebClient {
-        val connectionProvider = ConnectionProvider.builder("pg-client")
-            .maxConnections(50)
-            .maxIdleTime(Duration.ofSeconds(30))
-            .maxLifeTime(Duration.ofSeconds(120))
-            .pendingAcquireTimeout(Duration.ofSeconds(10))
-            .evictInBackground(Duration.ofSeconds(60))
-            .build()
-
-        val httpClient = HttpClient.create(connectionProvider)
-            .responseTimeout(Duration.ofSeconds(10))
+        val httpClient = HttpClient.create()
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
+            .doOnConnected { conn ->
+                conn.addHandlerLast(ReadTimeoutHandler(3, TimeUnit.SECONDS))
+            }
 
         return WebClient.builder()
             .baseUrl(pgSimulatorBaseUrl)

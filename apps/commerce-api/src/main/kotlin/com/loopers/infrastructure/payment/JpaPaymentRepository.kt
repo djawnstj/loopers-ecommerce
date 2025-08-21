@@ -4,4 +4,6 @@ import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpql
 import com.loopers.domain.payment.Payment
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface JpaPaymentRepository : JpaRepository<Payment, Long>, KotlinJdslJpqlExecutor
+interface JpaPaymentRepository : JpaRepository<Payment, Long>, KotlinJdslJpqlExecutor {
+    fun findByPaymentKey(paymentKey: String): Payment?
+}

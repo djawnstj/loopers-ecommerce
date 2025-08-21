@@ -13,11 +13,14 @@ import java.math.BigDecimal
 @Table(name = "payment")
 class Payment(
     orderId: Long,
+    paymentKey: String?,
     amount: BigDecimal,
     type: PaymentType,
     status: PaymentStatusType,
 ) : BaseEntity() {
     var orderId: Long = orderId
+        protected set
+    var paymentKey: String? = paymentKey
         protected set
     var amount: BigDecimal = amount
         protected set
@@ -29,4 +32,12 @@ class Payment(
     @Enumerated(EnumType.STRING)
     var status: PaymentStatusType = status
         protected set
+
+    fun paid() {
+        this.status = PaymentStatusType.PAID
+    }
+
+    fun failed() {
+        this.status = PaymentStatusType.FAILED
+    }
 }

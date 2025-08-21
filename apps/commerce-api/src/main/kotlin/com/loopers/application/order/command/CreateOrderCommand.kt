@@ -3,7 +3,6 @@ package com.loopers.application.order.command
 import com.loopers.domain.coupon.param.GetUserCouponDetailParam
 import com.loopers.domain.order.param.SubmitOrderParam
 import com.loopers.domain.product.ProductItems
-import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import java.math.BigDecimal
 
 data class CreateOrderCommand(
@@ -25,11 +24,6 @@ data class CreateOrderCommand(
             },
             productItems.totalAmount,
             payPrice,
-        )
-
-    fun toDeductProductItemsQuantityParam(): DeductProductItemsQuantityParam =
-        DeductProductItemsQuantityParam(
-            orderItemSummaries.map { DeductProductItemsQuantityParam.DeductItem(it.productItemId, it.quantity) },
         )
 
     data class OrderItemSummary(val productItemId: Long, val quantity: Int)

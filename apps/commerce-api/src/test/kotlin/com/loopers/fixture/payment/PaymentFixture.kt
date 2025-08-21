@@ -7,6 +7,7 @@ import java.math.BigDecimal
 
 sealed class PaymentFixture(
     val orderId: Long = 1L,
+    val paymentKey: String = "paymentKey",
     val amount: BigDecimal = BigDecimal("10000"),
     val type: PaymentType = PaymentType.CARD,
     val status: PaymentStatusType = PaymentStatusType.PAID,
@@ -14,5 +15,5 @@ sealed class PaymentFixture(
     data object `1만원 카드 결제 성공` : PaymentFixture()
     data object `1만원 포인트 결제 성공` : PaymentFixture(type = PaymentType.POINT)
 
-    fun toEntity(orderId: Long = this.orderId): Payment = Payment(orderId, amount, type, status)
+    fun toEntity(orderId: Long = this.orderId): Payment = Payment(orderId, paymentKey, amount, type, status)
 }

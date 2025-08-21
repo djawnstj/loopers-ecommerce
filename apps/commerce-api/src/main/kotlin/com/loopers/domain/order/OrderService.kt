@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional
 
 interface OrderService {
     fun submitOrder(param: SubmitOrderParam): Order
+    fun getOrderByOrderNumber(orderNumber: String): Order
     fun getOrderById(id: Long): Order
-    fun completeOrder(id: Long)
-    fun cancelOrder(id: Long)
+    fun pendingOrder(id: Long)
 }
 
 @Service
@@ -39,18 +39,15 @@ class OrderServiceImpl(
         return orderRepository.save(order)
     }
 
+    override fun getOrderByOrderNumber(orderNumber: String): Order =
+        orderRepository.findByOrderNumber(orderNumber) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+
     override fun getOrderById(id: Long): Order =
         orderRepository.findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
 
     @Transactional
-    override fun completeOrder(id: Long) {
-        orderRepository.findById(id)?.complete()
-            ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
-    }
-
-    @Transactional
-    override fun cancelOrder(id: Long) {
-        orderRepository.findById(id)?.cancel()
+    override fun pendingOrder(id: Long) {
+        orderRepository.findById(id)?.pending()
             ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
     }
 }

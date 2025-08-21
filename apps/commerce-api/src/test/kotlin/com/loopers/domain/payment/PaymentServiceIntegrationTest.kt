@@ -25,6 +25,7 @@ class PaymentServiceIntegrationTest(
             val param = RecordPaidPaymentParam(
                 orderId = 1L,
                 amount = BigDecimal("10000"),
+                paymentKey = "paymentKey",
                 type = PaymentType.CARD,
             )
 
@@ -48,6 +49,7 @@ class PaymentServiceIntegrationTest(
             val param = RecordFailedPaymentParam(
                 orderId = 6L,
                 amount = BigDecimal("30000"),
+                paymentKey = "paymentKey",
                 type = PaymentType.CARD,
             )
 

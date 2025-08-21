@@ -15,11 +15,10 @@ class OrderFacade(
     private val productService: ProductService,
     private val userCouponService: UserCouponService,
     private val orderService: OrderService,
-    private val userPointService: UserPointService,
 ) {
 
     @Transactional(timeout = 5)
-    fun createOrder(command: CreateOrderCommand) {
+    fun createOrder(command: CreateOrderCommand): String {
         val user = userService.getUserProfile(command.loginId)
         val productItems =
             productService.getProductItemsDetailWithLock(
@@ -30,8 +29,6 @@ class OrderFacade(
 
         val order = orderService.submitOrder(command.toSubmitOrderParam(user.id, productItems, payPrice))
 
-        userPointService.useUserPoint(user.id, order.payPrice.value)
-
-        productService.deductProductItemsQuantity(command.toDeductProductItemsQuantityParam())
+        return order.orderNumber
     }
 }

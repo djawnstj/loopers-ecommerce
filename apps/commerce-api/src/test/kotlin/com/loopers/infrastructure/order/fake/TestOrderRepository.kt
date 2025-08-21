@@ -15,7 +15,7 @@ class TestOrderRepository : OrderRepository {
             orders.add(order)
             return order
         }
-        
+
         // 새 주문 저장
         if (order.id == 0L) {
             val idField = order.javaClass.superclass.getDeclaredField("id")
@@ -30,6 +30,9 @@ class TestOrderRepository : OrderRepository {
     override fun findById(id: Long): Order? {
         return orders.find { it.id == id }
     }
+
+    override fun findByOrderNumber(orderNumber: String): Order? =
+        orders.find { it.orderNumber == orderNumber }
 
     fun findAll(): List<Order> = orders.toList()
 

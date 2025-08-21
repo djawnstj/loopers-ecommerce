@@ -7,8 +7,9 @@ import java.math.BigDecimal
 
 data class RecordPaidPaymentParam(
     val orderId: Long,
+    val paymentKey: String?,
     val amount: BigDecimal,
     val type: PaymentType,
 ) {
-    fun toEntity(): Payment = Payment(orderId, amount, type, PaymentStatusType.PAID)
+    fun toEntity(): Payment = Payment(orderId, paymentKey, amount, type, PaymentStatusType.PAID)
 }
