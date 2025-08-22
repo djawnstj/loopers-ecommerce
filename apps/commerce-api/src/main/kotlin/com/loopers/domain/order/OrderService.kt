@@ -11,6 +11,7 @@ interface OrderService {
     fun getOrderByOrderNumber(orderNumber: String): Order
     fun getOrderById(id: Long): Order
     fun pendingOrder(id: Long)
+    fun cancelOrder(id: Long)
 }
 
 @Service
@@ -48,6 +49,12 @@ class OrderServiceImpl(
     @Transactional
     override fun pendingOrder(id: Long) {
         orderRepository.findById(id)?.pending()
+            ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+    }
+
+    @Transactional
+    override fun cancelOrder(id: Long) {
+        orderRepository.findById(id)?.cancel()
             ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
     }
 }

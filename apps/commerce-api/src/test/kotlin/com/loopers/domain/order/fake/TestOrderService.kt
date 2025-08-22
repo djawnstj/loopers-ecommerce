@@ -59,6 +59,11 @@ class TestOrderService : OrderService {
         order.pending()
     }
 
+    override fun cancelOrder(id: Long) {
+        val order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+        order.cancel()
+    }
+
     private fun findById(id: Long): Order? {
         return orders.find { it.id == id }
     }

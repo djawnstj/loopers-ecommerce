@@ -5,6 +5,7 @@ import com.loopers.presentation.auth.LoginId
 import com.loopers.presentation.payment.dto.ExecutePayRequest
 import com.loopers.presentation.payment.dto.HandlePaymentHookRequest
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -15,13 +16,15 @@ class PaymentV1Controller(
     @PostMapping("/api/v1/payments")
     fun executePay(
         @LoginId loginId: String,
-        request: ExecutePayRequest
+        @RequestBody request: ExecutePayRequest
     ) {
         paymentFacade.executePay(request.toCommand(loginId))
     }
 
     @PostMapping("/api/v1/payments/hooks")
-    fun handlePaymentHook(request: HandlePaymentHookRequest) {
+    fun handlePaymentHook(
+        @RequestBody request: HandlePaymentHookRequest,
+    ) {
         paymentFacade.handlePaymentHook(request.toCommand())
     }
 }

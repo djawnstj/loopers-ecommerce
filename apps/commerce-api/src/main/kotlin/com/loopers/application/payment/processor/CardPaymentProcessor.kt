@@ -6,14 +6,14 @@ import com.loopers.domain.order.Order
 import com.loopers.domain.order.OrderService
 import com.loopers.domain.payment.PaymentService
 import com.loopers.domain.payment.vo.PaymentType
-import com.loopers.infrastructure.payment.client.PaymentClient
+import com.loopers.infrastructure.payment.client.PaymentClientFacade
 import org.springframework.stereotype.Component
 
 @Component
 class CardPaymentProcessor(
     private val orderService: OrderService,
     private val paymentService: PaymentService,
-    private val client: PaymentClient,
+    private val client: PaymentClientFacade,
 ) : PaymentProcessor {
     override fun support(paymentType: PaymentType): Boolean = (paymentType == PaymentType.CARD)
 
@@ -25,8 +25,11 @@ class CardPaymentProcessor(
             client.processPayment(it.userId, it.toPaymentRequest(order.orderNumber, amount))
                 .doOnNext { res ->
                     paymentService.recordPendingPayment(
-                        command.toRecordPendingPaymentParam(order.id, res.transactionKey, amount)
+                        command.toRecordPendingPaymentParam(order.id, res.transactionKey, amount),
                     )
+                }.doOnError {
+                    paymentService.recordFailedPayment(command.toRecordFailedPaymentParam(order.id, amount))
+                    orderService.cancelOrder(order.id)
                 }.subscribe()
 
             orderService.pendingOrder(order.id)
