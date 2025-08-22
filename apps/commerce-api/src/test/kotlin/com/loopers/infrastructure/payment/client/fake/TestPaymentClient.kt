@@ -1,10 +1,11 @@
 package com.loopers.infrastructure.payment.client.fake
 
+import com.loopers.infrastructure.payment.client.OrderResponse
 import com.loopers.infrastructure.payment.client.PaymentClient
 import com.loopers.infrastructure.payment.client.PaymentRequest
 import com.loopers.infrastructure.payment.client.PaymentResponse
+import com.loopers.infrastructure.payment.client.TransactionDetailResponse
 import com.loopers.infrastructure.payment.client.TransactionStatusResponse
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 class TestPaymentClient : PaymentClient {
@@ -12,7 +13,7 @@ class TestPaymentClient : PaymentClient {
     private var shouldFail = false
     private var failureReason = "Payment failed"
 
-    override fun processPayment(userId: Long, request: PaymentRequest): Mono<PaymentResponse> {
+    override fun processPayment(request: PaymentRequest, userId: Long): Mono<PaymentResponse> {
         return if (shouldFail) {
             Mono.error(RuntimeException(failureReason))
         } else {
@@ -26,12 +27,11 @@ class TestPaymentClient : PaymentClient {
         }
     }
 
-    override fun getPayment(userId: Long, transactionKey: String): Mono<PaymentResponse> {
-        return payments[transactionKey]?.let { Mono.just(it) }
-            ?: Mono.error(RuntimeException("Payment not found"))
+    override fun getPayment(transactionKey: String, userId: Long): Mono<TransactionDetailResponse> {
+        TODO()
     }
 
-    override fun getPaymentsByOrderId(userId: Long, orderId: String): Flux<PaymentResponse> {
+    override fun getPaymentsByOrderId(orderId: String, userId: Long): Mono<OrderResponse> {
         TODO()
     }
 

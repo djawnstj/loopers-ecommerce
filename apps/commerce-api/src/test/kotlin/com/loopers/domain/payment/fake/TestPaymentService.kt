@@ -5,6 +5,7 @@ import com.loopers.domain.payment.PaymentService
 import com.loopers.domain.payment.param.RecordFailedPaymentParam
 import com.loopers.domain.payment.param.RecordPaidPaymentParam
 import com.loopers.domain.payment.param.RecordPendingPaymentParam
+import com.loopers.domain.payment.param.UpsertPaymentParam
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
 
@@ -43,6 +44,15 @@ class TestPaymentService : PaymentService {
 
     override fun getPaymentByPaymentKey(paymentKey: String): Payment {
         return payments.find { it.paymentKey == paymentKey } ?: throw CoreException(ErrorType.PAYMENT_NOT_FOUND)
+    }
+
+    override fun upsertPaymentByPaymentKey(param: UpsertPaymentParam) {
+        this.payments.find { it.paymentKey == param.paymentKey }?.updateStatus(param.status)
+            ?: run {
+                this.payments.add(
+                    Payment(param.orderId, param.paymentKey, param.amount, param.type, param.status),
+                )
+            }
     }
 
     fun getPayments(): List<Payment> = payments.toList()

@@ -40,4 +40,8 @@ class Payment(
     fun failed() {
         this.status = PaymentStatusType.FAILED
     }
+
+    fun updateStatus(status: PaymentStatusType) {
+        this.status = status
+    }
 }

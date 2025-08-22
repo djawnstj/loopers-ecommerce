@@ -64,6 +64,14 @@ class TestOrderService : OrderService {
         order.cancel()
     }
 
+    override fun failedOrder(id: Long) {
+        val order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+        order.failed()
+    }
+
+    override fun getPendingOrders(): List<Order> =
+        this.orders.filter { it.status == OrderStatusType.PENDING }
+
     private fun findById(id: Long): Order? {
         return orders.find { it.id == id }
     }

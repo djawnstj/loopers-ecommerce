@@ -54,6 +54,10 @@ class Order private constructor(
         this.status = OrderStatusType.CANCELED
     }
 
+    fun failed() {
+        this.status = OrderStatusType.FAILED
+    }
+
     fun pending() {
         this.status = OrderStatusType.PENDING
     }

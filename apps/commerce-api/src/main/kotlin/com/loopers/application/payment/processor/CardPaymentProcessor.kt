@@ -22,7 +22,7 @@ class CardPaymentProcessor(
             val order: Order = orderService.getOrderByOrderNumber(command.orderNumber)
             val amount = order.payPrice.value
 
-            client.processPayment(it.userId, it.toPaymentRequest(order.orderNumber, amount))
+            client.processPayment(it.toPaymentRequest(order.orderNumber, amount))
                 .doOnNext { res ->
                     paymentService.recordPendingPayment(
                         command.toRecordPendingPaymentParam(order.id, res.transactionKey, amount),
