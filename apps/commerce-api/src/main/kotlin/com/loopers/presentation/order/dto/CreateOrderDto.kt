@@ -11,4 +11,4 @@ data class CreateOrderRequest(
     data class OrderItemSummary(val productItemId: Long, val quantity: Int)
 }
 
-data class CreateOrderResponse(val success: Boolean = true)
+data class CreateOrderResponse(val orderNumber: String)

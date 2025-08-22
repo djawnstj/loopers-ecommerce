@@ -19,7 +19,7 @@ class OrderV1Controller(
         @LoginId loginId: String,
         @RequestBody request: CreateOrderRequest,
     ): ApiResponse<CreateOrderResponse> {
-        orderFacade.createOrder(request.toCommand(loginId))
-        return ApiResponse.success(CreateOrderResponse())
+        val result = orderFacade.createOrder(request.toCommand(loginId))
+        return ApiResponse.success(CreateOrderResponse(result))
     }
 }
