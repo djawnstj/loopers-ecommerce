@@ -12,4 +12,6 @@ class OrderRepositoryImpl(
     override fun save(order: Order): Order = jpaOrderRepository.save(order)
 
     override fun findById(id: Long): Order? = jpaOrderRepository.findByIdOrNull(id)
+
+    override fun findByOrderNumber(orderNumber: String): Order? = jpaOrderRepository.findByOrderNumber(orderNumber)
 }
