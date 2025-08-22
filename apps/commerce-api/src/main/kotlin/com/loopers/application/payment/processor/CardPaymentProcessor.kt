@@ -28,7 +28,8 @@ class CardPaymentProcessor(
                         command.toRecordPendingPaymentParam(order.id, res.transactionKey, amount),
                     )
                 }.doOnError {
-
+                    paymentService.recordFailedPayment(command.toRecordFailedPaymentParam(order.id, amount))
+                    orderService.cancelOrder(order.id)
                 }.subscribe()
 
             orderService.pendingOrder(order.id)

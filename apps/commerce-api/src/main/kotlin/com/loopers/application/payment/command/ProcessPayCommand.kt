@@ -21,7 +21,7 @@ interface ProcessPayCommand {
                     userId,
                     executePayCommand.orderNumber,
                     executePayCommand.card!!.cardType,
-                    executePayCommand.card.cardNo
+                    executePayCommand.card.cardNo,
                 )
             }
     }
@@ -55,4 +55,7 @@ data class ProcessCardPayCommand(
 
     fun toRecordPendingPaymentParam(orderId: Long, paymentKey: String, amount: BigDecimal): RecordPendingPaymentParam =
         RecordPendingPaymentParam(orderId, paymentKey, amount, PaymentType.CARD)
+
+    fun toRecordFailedPaymentParam(orderId: Long, amount: BigDecimal): RecordFailedPaymentParam =
+        RecordFailedPaymentParam(orderId, null, amount, PaymentType.CARD)
 }

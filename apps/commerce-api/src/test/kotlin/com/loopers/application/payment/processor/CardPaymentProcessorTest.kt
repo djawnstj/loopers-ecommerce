@@ -7,6 +7,7 @@ import com.loopers.domain.payment.fake.TestPaymentService
 import com.loopers.domain.payment.param.RecordFailedPaymentParam
 import com.loopers.domain.payment.vo.PaymentType
 import com.loopers.fixture.order.OrderFixture
+import com.loopers.infrastructure.payment.client.PaymentClientFacade
 import com.loopers.infrastructure.payment.client.fake.TestPaymentClient
 import com.loopers.support.enums.payment.CardType
 import io.mockk.spyk
@@ -26,7 +27,7 @@ class CardPaymentProcessorTest {
             // given
             val orderService = TestOrderService()
             val paymentService = TestPaymentService()
-            val paymentClient = TestPaymentClient()
+            val paymentClient = PaymentClientFacade(TestPaymentClient())
             val cut = CardPaymentProcessor(orderService, paymentService, paymentClient)
 
             // when
@@ -41,7 +42,7 @@ class CardPaymentProcessorTest {
             // given
             val orderService = TestOrderService()
             val paymentService = TestPaymentService()
-            val paymentClient = TestPaymentClient()
+            val paymentClient = PaymentClientFacade(TestPaymentClient())
             val cut = CardPaymentProcessor(orderService, paymentService, paymentClient)
 
             // when
@@ -60,12 +61,13 @@ class CardPaymentProcessorTest {
             val testPaymentService = TestPaymentService()
             val orderService = TestOrderService()
             val paymentService = spyk(testPaymentService)
-            val paymentClient = TestPaymentClient()
+            val testPaymentClient = TestPaymentClient()
+            val paymentClient = PaymentClientFacade(testPaymentClient)
             val cut = CardPaymentProcessor(orderService, paymentService, paymentClient)
 
             val order = OrderFixture.기본.toEntity()
             orderService.addOrders(listOf(order))
-            paymentClient.setFailure(false)
+            testPaymentClient.setFailure(false)
 
             val command = ProcessCardPayCommand(
                 userId = 1L,
@@ -99,12 +101,13 @@ class CardPaymentProcessorTest {
             val testOrderService = TestOrderService()
             val orderService = spyk(testOrderService)
             val paymentService = TestPaymentService()
-            val paymentClient = TestPaymentClient()
+            val testPaymentClient = TestPaymentClient()
+            val paymentClient = PaymentClientFacade(testPaymentClient)
             val cut = CardPaymentProcessor(orderService, paymentService, paymentClient)
 
             val order = OrderFixture.기본.toEntity()
             testOrderService.addOrders(listOf(order))
-            paymentClient.setFailure(false)
+            testPaymentClient.setFailure(false)
 
             val command = ProcessCardPayCommand(
                 userId = 1L,
@@ -130,12 +133,13 @@ class CardPaymentProcessorTest {
             val testPaymentService = TestPaymentService()
             val orderService = TestOrderService()
             val paymentService = spyk(testPaymentService)
-            val paymentClient = TestPaymentClient()
+            val testPaymentClient = TestPaymentClient()
+            val paymentClient = PaymentClientFacade(testPaymentClient)
             val cut = CardPaymentProcessor(orderService, paymentService, paymentClient)
 
             val order = OrderFixture.`3만원 주문`.toEntity()
             orderService.addOrders(listOf(order))
-            paymentClient.setFailure(true, "카드 잔액 부족")
+            testPaymentClient.setFailure(true, "카드 잔액 부족")
 
             val command = ProcessCardPayCommand(
                 userId = 2L,
@@ -153,7 +157,11 @@ class CardPaymentProcessorTest {
                 .untilAsserted {
                     verify(exactly = 1) {
                         paymentService.recordFailedPayment(
-                            RecordFailedPaymentParam(order.id, any(), BigDecimal("30000"), PaymentType.CARD),
+                            match {
+                                it.orderId == order.id &&
+                                        it.amount == BigDecimal("30000") &&
+                                        it.type == PaymentType.CARD
+                            }
                         )
                     }
                 }
@@ -165,12 +173,13 @@ class CardPaymentProcessorTest {
             val testOrderService = TestOrderService()
             val orderService = spyk(testOrderService)
             val paymentService = TestPaymentService()
-            val paymentClient = TestPaymentClient()
+            val testPaymentClient = TestPaymentClient()
+            val paymentClient = PaymentClientFacade(testPaymentClient)
             val cut = CardPaymentProcessor(orderService, paymentService, paymentClient)
 
-            val order = OrderFixture.기본.toEntity()
+            val order = spyk(OrderFixture.기본.toEntity())
             testOrderService.addOrders(listOf(order))
-            paymentClient.setFailure(true, "네트워크 오류")
+            testPaymentClient.setFailure(true, "네트워크 오류")
 
             val command = ProcessCardPayCommand(
                 userId = 1L,
@@ -186,7 +195,7 @@ class CardPaymentProcessorTest {
             Awaitility.await()
                 .atMost(Duration.ofSeconds(1))
                 .untilAsserted {
-                    assertThat(order.status).isEqualTo(OrderStatusType.CANCELED)
+                    verify(exactly = 1) { order.cancel() }
                 }
         }
 
@@ -196,7 +205,7 @@ class CardPaymentProcessorTest {
             val testPaymentClient = TestPaymentClient()
             val orderService = TestOrderService()
             val paymentService = TestPaymentService()
-            val paymentClient = spyk(testPaymentClient)
+            val paymentClient = spyk(PaymentClientFacade(testPaymentClient))
             val cut = CardPaymentProcessor(orderService, paymentService, paymentClient)
 
             val order = OrderFixture.기본.toEntity()
