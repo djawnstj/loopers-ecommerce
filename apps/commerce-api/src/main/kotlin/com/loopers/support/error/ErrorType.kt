@@ -56,6 +56,10 @@ enum class ErrorType(val status: HttpStatus, val code: String, val message: Stri
     USER_COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "사용자의 쿠폰을 찾지 못했습니다."),
     ALREADY_USED_USER_COUPON(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "이미 사용된 쿠폰입니다."),
 
+    // Payment
+    PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.reasonPhrase, "결제 정보를 찾을 수 없습니다."),
+    NOT_SUPPORTED_PAYMENT_TYPE(HttpStatus.UNPROCESSABLE_ENTITY, HttpStatus.UNPROCESSABLE_ENTITY.reasonPhrase, "지원하지 않는 결제 수단 입니다."),
+
     /** 범용 에러 */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase, "일시적인 오류가 발생했습니다."),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.reasonPhrase, "잘못된 요청입니다."),
