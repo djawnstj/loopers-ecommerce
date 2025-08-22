@@ -49,14 +49,14 @@ class TestOrderService : OrderService {
         return order
     }
 
-    override fun completeOrder(id: Long) {
-        val order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
-        order.complete()
-    }
+    override fun getOrderByOrderNumber(orderNumber: String): Order =
+        orders.find { it.orderNumber == orderNumber } ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
 
-    override fun cancelOrder(id: Long) {
+    override fun getOrderById(id: Long): Order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+
+    override fun pendingOrder(id: Long) {
         val order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
-        order.cancel()
+        order.pending()
     }
 
     private fun findById(id: Long): Order? {
