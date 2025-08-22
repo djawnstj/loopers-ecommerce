@@ -42,11 +42,13 @@ class PaymentClientFacade(
             .build(),
     )
 
-    fun processPayment(userId: Long, request: PaymentRequest): Mono<PaymentResponse> {
-        return paymentClient.processPayment(userId, request)
+    fun processPayment(request: PaymentRequest): Mono<PaymentResponse> =
+        paymentClient.processPayment(request)
             .transformDeferred(RetryOperator.of(retry))
             .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
-    }
+
+    fun getPaymentsByOrderId(orderId: String): Mono<OrderResponse> =
+        paymentClient.getPaymentsByOrderId(orderId)
 
     private fun shouldCheckExistingPayment(error: Throwable): Boolean {
         return when (error) {

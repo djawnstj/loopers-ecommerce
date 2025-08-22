@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.service.annotation.GetExchange
 import org.springframework.web.service.annotation.HttpExchange
 import org.springframework.web.service.annotation.PostExchange
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @HttpExchange(url = "/api/v1/payments", accept = ["application/json"])
@@ -15,19 +14,19 @@ interface PaymentClient {
 
     @PostExchange
     fun processPayment(
+        @RequestBody request: PaymentRequest,
         @RequestHeader("X-USER-ID") userId: Long = 1,
-        @RequestBody request: PaymentRequest
     ): Mono<PaymentResponse>
 
     @GetExchange("/{transactionKey}")
     fun getPayment(
+        @PathVariable transactionKey: String,
         @RequestHeader("X-USER-ID") userId: Long = 1,
-        @PathVariable transactionKey: String
-    ): Mono<PaymentResponse>
+    ): Mono<TransactionDetailResponse>
 
     @GetExchange
     fun getPaymentsByOrderId(
+        @RequestParam orderId: String,
         @RequestHeader("X-USER-ID") userId: Long = 1,
-        @RequestParam orderId: String
-    ): Flux<PaymentResponse>
+    ): Mono<OrderResponse>
 }

@@ -2,6 +2,7 @@ package com.loopers.infrastructure.order.fake
 
 import com.loopers.domain.order.Order
 import com.loopers.domain.order.OrderRepository
+import com.loopers.domain.order.vo.OrderStatusType
 
 class TestOrderRepository : OrderRepository {
     private val orders = mutableListOf<Order>()
@@ -33,6 +34,9 @@ class TestOrderRepository : OrderRepository {
 
     override fun findByOrderNumber(orderNumber: String): Order? =
         orders.find { it.orderNumber == orderNumber }
+
+    override fun findAllByStatus(status: OrderStatusType): List<Order> =
+        this.orders.filter { it.status == status }
 
     fun findAll(): List<Order> = orders.toList()
 

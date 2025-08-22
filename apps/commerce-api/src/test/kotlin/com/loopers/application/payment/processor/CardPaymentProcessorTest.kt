@@ -4,7 +4,6 @@ import com.loopers.application.payment.command.ProcessCardPayCommand
 import com.loopers.domain.order.fake.TestOrderService
 import com.loopers.domain.order.vo.OrderStatusType
 import com.loopers.domain.payment.fake.TestPaymentService
-import com.loopers.domain.payment.param.RecordFailedPaymentParam
 import com.loopers.domain.payment.vo.PaymentType
 import com.loopers.fixture.order.OrderFixture
 import com.loopers.infrastructure.payment.client.PaymentClientFacade
@@ -161,7 +160,7 @@ class CardPaymentProcessorTest {
                                 it.orderId == order.id &&
                                         it.amount == BigDecimal("30000") &&
                                         it.type == PaymentType.CARD
-                            }
+                            },
                         )
                     }
                 }
@@ -226,7 +225,7 @@ class CardPaymentProcessorTest {
                 .atMost(Duration.ofSeconds(1))
                 .untilAsserted {
                     verify(exactly = 1) {
-                        paymentClient.processPayment(1L, command.toPaymentRequest(order.orderNumber, BigDecimal("10000")))
+                        paymentClient.processPayment(command.toPaymentRequest(order.orderNumber, BigDecimal("10000")))
                     }
                 }
         }
