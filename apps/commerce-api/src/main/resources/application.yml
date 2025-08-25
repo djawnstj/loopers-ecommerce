@@ -29,6 +29,10 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+payment:
+  pg-status-check:
+    interval: 30000
+
 ---
 spring:
   config:

@@ -49,17 +49,28 @@ class TestOrderService : OrderService {
         return order
     }
 
-    override fun getOrderById(id: Long): Order = orders.find { it.id == id } ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+    override fun getOrderByOrderNumber(orderNumber: String): Order =
+        orders.find { it.orderNumber == orderNumber } ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
 
-    override fun completeOrder(id: Long) {
+    override fun getOrderById(id: Long): Order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+
+    override fun pendingOrder(id: Long) {
         val order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
-        order.complete()
+        order.pending()
     }
 
     override fun cancelOrder(id: Long) {
         val order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
         order.cancel()
     }
+
+    override fun failedOrder(id: Long) {
+        val order = findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+        order.failed()
+    }
+
+    override fun getPendingOrders(): List<Order> =
+        this.orders.filter { it.status == OrderStatusType.PENDING }
 
     private fun findById(id: Long): Order? {
         return orders.find { it.id == id }

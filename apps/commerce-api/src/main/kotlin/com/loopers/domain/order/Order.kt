@@ -54,6 +54,14 @@ class Order private constructor(
         this.status = OrderStatusType.CANCELED
     }
 
+    fun failed() {
+        this.status = OrderStatusType.FAILED
+    }
+
+    fun pending() {
+        this.status = OrderStatusType.PENDING
+    }
+
     companion object {
         operator fun invoke(userId: Long, totalAmount: BigDecimal, payPrice: BigDecimal, status: OrderStatusType): Order =
             Order(userId, UUID.randomUUID().toString(), Money(totalAmount), Money(payPrice), status)

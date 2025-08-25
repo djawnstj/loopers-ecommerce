@@ -1,6 +1,7 @@
 package com.loopers.domain.order
 
 import com.loopers.domain.order.param.SubmitOrderParam
+import com.loopers.domain.order.vo.OrderStatusType
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
 import org.springframework.stereotype.Service
@@ -8,9 +9,12 @@ import org.springframework.transaction.annotation.Transactional
 
 interface OrderService {
     fun submitOrder(param: SubmitOrderParam): Order
+    fun getOrderByOrderNumber(orderNumber: String): Order
     fun getOrderById(id: Long): Order
-    fun completeOrder(id: Long)
+    fun pendingOrder(id: Long)
     fun cancelOrder(id: Long)
+    fun failedOrder(id: Long)
+    fun getPendingOrders(): List<Order>
 }
 
 @Service
@@ -39,12 +43,15 @@ class OrderServiceImpl(
         return orderRepository.save(order)
     }
 
+    override fun getOrderByOrderNumber(orderNumber: String): Order =
+        orderRepository.findByOrderNumber(orderNumber) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+
     override fun getOrderById(id: Long): Order =
         orderRepository.findById(id) ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
 
     @Transactional
-    override fun completeOrder(id: Long) {
-        orderRepository.findById(id)?.complete()
+    override fun pendingOrder(id: Long) {
+        orderRepository.findById(id)?.pending()
             ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
     }
 
@@ -53,4 +60,12 @@ class OrderServiceImpl(
         orderRepository.findById(id)?.cancel()
             ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
     }
+
+    @Transactional
+    override fun failedOrder(id: Long) {
+        orderRepository.findById(id)?.failed()
+            ?: throw CoreException(ErrorType.ORDER_NOT_FOUND)
+    }
+
+    override fun getPendingOrders(): List<Order> = orderRepository.findAllByStatus(OrderStatusType.PENDING)
 }
