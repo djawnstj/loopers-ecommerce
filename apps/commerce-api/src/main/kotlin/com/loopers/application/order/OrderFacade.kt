@@ -3,7 +3,6 @@ package com.loopers.application.order
 import com.loopers.application.order.command.CreateOrderCommand
 import com.loopers.domain.coupon.UserCouponService
 import com.loopers.domain.order.OrderService
-import com.loopers.domain.point.UserPointService
 import com.loopers.domain.product.ProductService
 import com.loopers.domain.user.UserService
 import org.springframework.stereotype.Component
