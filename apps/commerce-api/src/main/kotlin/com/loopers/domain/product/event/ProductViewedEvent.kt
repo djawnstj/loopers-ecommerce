@@ -1,3 +1,5 @@
 package com.loopers.domain.product.event
 
-data class ProductViewedEvent(val productId: Long)
+import java.time.LocalDate
+
+data class ProductViewedEvent(val productId: Long, val eventDate: LocalDate)
