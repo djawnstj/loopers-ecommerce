@@ -1,3 +1,5 @@
 package com.loopers.interfaces.consumer.order.dto
 
-data class OrderCompletedEvent(val orderId: Long)
+import java.time.LocalDate
+
+data class OrderCompletedEvent(val orderId: Long, val eventDate: LocalDate)
