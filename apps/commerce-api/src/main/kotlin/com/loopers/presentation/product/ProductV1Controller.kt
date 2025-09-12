@@ -2,6 +2,8 @@ package com.loopers.presentation.product
 
 import com.loopers.application.product.ProductFacade
 import com.loopers.presentation.product.dto.GetProductDetailResponse
+import com.loopers.presentation.product.dto.GetProductRankingRequest
+import com.loopers.presentation.product.dto.GetProductRankingResponse
 import com.loopers.presentation.product.dto.GetProductRequest
 import com.loopers.presentation.product.dto.GetProductResponse
 import com.loopers.support.presentation.ApiResponse
@@ -24,5 +26,11 @@ class ProductV1Controller(
     fun getProductDetail(@PathVariable productId: Long): ApiResponse<GetProductDetailResponse> {
         val result = productFacade.getProductDetail(productId)
         return ApiResponse.success(GetProductDetailResponse(result))
+    }
+
+    @GetMapping("/api/v1/products/rankings")
+    fun getProductRanking(request: GetProductRankingRequest): ApiResponse<GetProductRankingResponse> {
+        val result = productFacade.getProductRanking(request.toCommand())
+        return ApiResponse.success(GetProductRankingResponse(result))
     }
 }
