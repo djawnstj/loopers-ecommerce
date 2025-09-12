@@ -69,4 +69,10 @@ class TestProductRepository : ProductRepository {
             it.id == id && it.status == ProductStatusType.ACTIVE && it.deletedAt == null
         }
     }
+
+    override fun findAllByIds(ids: List<Long>): List<Product> {
+        return products.filter { product ->
+            product.id in ids && product.deletedAt == null
+        }
+    }
 }

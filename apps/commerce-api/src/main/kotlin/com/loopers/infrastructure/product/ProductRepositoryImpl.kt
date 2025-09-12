@@ -53,6 +53,19 @@ class ProductRepositoryImpl(
         )
     }.firstOrNull()
 
+    override fun findAllByIds(ids: List<Long>): List<Product> = jpaProductRepository.findAll {
+        select(
+            entity(Product::class),
+        ).from(
+            entity(Product::class),
+            leftFetchJoin(path(Product::items).path(ProductItems::items)),
+        ).whereAnd(
+            path(Product::id).`in`(ids),
+            path(Product::status).eq(ProductStatusType.ACTIVE),
+            path(Product::deletedAt).isNull(),
+        )
+    }.filterNotNull()
+
     override fun findProductItemsByIds(productItemIds: List<Long>): List<ProductItem> = jpaProductItemRepository.findAll {
         select(
             entity(ProductItem::class),
