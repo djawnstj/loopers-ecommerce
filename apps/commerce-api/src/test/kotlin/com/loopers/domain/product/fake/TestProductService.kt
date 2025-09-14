@@ -6,9 +6,12 @@ import com.loopers.domain.product.ProductDetailView
 import com.loopers.domain.product.ProductItem
 import com.loopers.domain.product.ProductItems
 import com.loopers.domain.product.ProductLikeCount
+import com.loopers.domain.product.ProductRankings
 import com.loopers.domain.product.ProductService
 import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
+import com.loopers.domain.product.params.GetProductRankingParam
+import java.time.LocalDate
 import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.support.enums.sort.ProductSortType
 import com.loopers.support.error.CoreException
@@ -111,5 +114,24 @@ class TestProductService : ProductService {
             val newProductLikeCount = ProductLikeCount(product.id, 0L)
             likeCountMap[product.id] = newProductLikeCount
         }
+    }
+
+    override fun findAllByIds(ids: List<Long>): List<Product> {
+        return products.filter { product ->
+            product.id in ids && product.deletedAt == null
+        }
+    }
+
+    override fun getProductRanking(param: GetProductRankingParam): ProductRankings {
+        return ProductRankings(
+            rankings = emptyList(),
+            totalCount = 0,
+            page = param.page,
+            perPage = param.perPage
+        )
+    }
+
+    override fun getProductRank(productId: Long, date: LocalDate): Long? {
+        return null
     }
 }

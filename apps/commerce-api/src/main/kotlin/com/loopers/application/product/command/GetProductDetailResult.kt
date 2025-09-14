@@ -15,9 +15,10 @@ data class GetProductDetailResult(
     val brandId: Long,
     val brandName: String,
     val likeCount: Long,
+    val rank: Long?,
 ) {
     companion object {
-        operator fun invoke(productDetailView: ProductDetailView): GetProductDetailResult =
+        operator fun invoke(productDetailView: ProductDetailView, rank: Long? = null): GetProductDetailResult =
             GetProductDetailResult(
                 productDetailView.id,
                 productDetailView.name,
@@ -27,6 +28,7 @@ data class GetProductDetailResult(
                 productDetailView.brandId,
                 productDetailView.brandName,
                 productDetailView.likeCount.value,
+                rank,
             )
     }
 

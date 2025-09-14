@@ -1,3 +1,5 @@
 package com.loopers.interfaces.consumer.product.dto
 
-data class ProductViewedEvent(val productId: Long)
+import java.time.LocalDate
+
+data class ProductViewedEvent(val productId: Long, val eventDate: LocalDate)

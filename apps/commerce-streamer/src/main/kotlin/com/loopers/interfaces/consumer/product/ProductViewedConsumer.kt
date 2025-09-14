@@ -2,6 +2,7 @@ package com.loopers.interfaces.consumer.product
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.loopers.config.kafka.KafkaConfig
+import com.loopers.application.product.ProductFacade
 import com.loopers.interfaces.consumer.product.dto.ProductViewedEvent
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component
 @Component
 class ProductViewedConsumer(
     private val objectMapper: ObjectMapper,
+    private val productFacade: ProductFacade,
 ) {
     @KafkaListener(
         topics = [PRODUCT_VIEWED_TOPIC],
@@ -22,7 +24,7 @@ class ProductViewedConsumer(
     ) {
         messages.forEach { message ->
             val event = objectMapper.readValue(message.value().toString(), ProductViewedEvent::class.java)
-            // TODO 레디스 랭킹 + 파이프라이닝?
+            productFacade.updateViewRanking(event.productId, event.eventDate)
         }
         acknowledgment.acknowledge()
     }

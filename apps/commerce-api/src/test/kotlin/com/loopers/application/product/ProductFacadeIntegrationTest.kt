@@ -1,9 +1,13 @@
 package com.loopers.application.product
 
+import com.loopers.application.product.command.GetProductRankingCommand
+import com.loopers.application.product.command.GetProductRankingResult
 import com.loopers.application.product.command.GetProductsCommand
+import com.loopers.cache.SortedCacheRepository
 import com.loopers.domain.brand.Brand
 import com.loopers.domain.product.Product
 import com.loopers.domain.product.ProductLikeCount
+import com.loopers.domain.product.cache.ProductCacheKey
 import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.product.ProductFixture
@@ -19,6 +23,8 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.data.domain.PageRequest
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class ProductFacadeIntegrationTest(
@@ -26,6 +32,7 @@ class ProductFacadeIntegrationTest(
     private val jpaProductRepository: JpaProductRepository,
     private val jpaBrandRepository: JpaBrandRepository,
     private val jpaProductLikeCountRepository: JpaProductLikeCountRepository,
+    private val sortedCacheRepository: SortedCacheRepository,
 ) : IntegrationTestSupport() {
 
     @Test
@@ -156,13 +163,45 @@ class ProductFacadeIntegrationTest(
                     "status",
                     "brandName",
                     "likeCount",
+                    "rank",
                 ).containsExactly(
                     "활성상품 1",
                     LocalDateTime.parse("2025-01-01T00:00:00"),
                     ProductStatusType.ACTIVE,
                     "활성브랜드",
                     0L,
+                    null,
                 )
+        }
+
+        @Test
+        fun `상품에 랭킹 정보가 있으면 순위와 함께 상세 정보를 반환한다`() {
+            // given
+            val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
+            val product = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(
+                    name = "인기상품",
+                    brandId = brand.id,
+                    saleStartAt = LocalDateTime.parse("2025-01-01T00:00:00"),
+                ),
+            )
+
+            val today = LocalDate.now()
+            val cacheKey = ProductCacheKey.ProductRankingPerDays(today)
+
+            sortedCacheRepository.save(cacheKey, 100.0, product.id)
+            sortedCacheRepository.save(cacheKey, 90.0, 101L)
+            sortedCacheRepository.save(cacheKey, 80.0, 102L)
+            sortedCacheRepository.save(cacheKey, 70.0, 103L)
+            sortedCacheRepository.save(cacheKey, 60.0, 104L)
+
+            // when
+            val actual = cut.getProductDetail(product.id)
+
+            // then
+            assertThat(actual)
+                .extracting("name", "rank")
+                .containsExactly("인기상품", 1L)
         }
 
         @Test
@@ -197,5 +236,50 @@ class ProductFacadeIntegrationTest(
             // then
             assertThat(actual.likeCount).isEqualTo(0L)
         }
+    }
+
+    @Test
+    fun `상품 랭킹을 페이지 단위로 조회할 수 있다`() {
+        // given
+        val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
+        val product1 = jpaProductRepository.saveAndFlush(
+            ProductFixture.create(name = "1등상품", brandId = brand.id),
+        )
+        val product2 = jpaProductRepository.saveAndFlush(
+            ProductFixture.create(name = "2등상품", brandId = brand.id),
+        )
+        val product3 = jpaProductRepository.saveAndFlush(
+            ProductFixture.create(name = "3등상품", brandId = brand.id),
+        )
+
+        val today = LocalDate.now()
+        val cacheKey = ProductCacheKey.ProductRankingPerDays(today)
+
+        sortedCacheRepository.save(cacheKey, 100.0, product1.id)
+        sortedCacheRepository.save(cacheKey, 90.0, product2.id)
+        sortedCacheRepository.save(cacheKey, 80.0, product3.id)
+
+        val command = GetProductRankingCommand(
+            date = today,
+            pageable = PageRequest.of(0, 2),
+        )
+
+        // when
+        val actual = cut.getProductRanking(command)
+
+        // then
+        assertThat(actual)
+            .extracting(
+                "rankings",
+                "totalCount",
+                "currentPage",
+            ).containsExactly(
+                listOf(
+                    GetProductRankingResult.RankedProduct(productId = 3, productName = "3등상품", brandId = 1, likeCount = 0, rank = 1),
+                    GetProductRankingResult.RankedProduct(productId = 2, productName = "2등상품", brandId = 1, likeCount = 0, rank = 2),
+                ),
+                3L,
+                0,
+            )
     }
 }
