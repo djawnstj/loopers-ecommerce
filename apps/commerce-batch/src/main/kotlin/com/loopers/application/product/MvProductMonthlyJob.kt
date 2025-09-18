@@ -6,13 +6,16 @@ import com.loopers.domain.product.mv.MvProductRankMonthly
 import com.loopers.domain.product.mv.MvProductRankMonthlyRepository
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
+import org.springframework.batch.core.configuration.annotation.StepScope
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.launch.support.RunIdIncrementer
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.core.step.builder.StepBuilder
 import org.springframework.batch.item.ItemProcessor
+import org.springframework.batch.item.ItemReader
 import org.springframework.batch.item.ItemWriter
 import org.springframework.batch.item.support.ListItemReader
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.transaction.PlatformTransactionManager
@@ -27,29 +30,34 @@ class MvProductMonthlyJob(
 ) {
 
     @Bean
-    fun monthlyRankingJob(): Job {
+    fun monthlyRankingJob(monthlyStep: Step): Job {
         return JobBuilder("monthlyRankingJob", jobRepository)
             .incrementer(RunIdIncrementer())
-            .start(monthlyStep())
+            .start(monthlyStep)
             .build()
     }
 
     @Bean
-    fun monthlyStep(): Step {
+    fun monthlyStep(monthlyProductReader: ItemReader<ProductMetrics>): Step {
         return StepBuilder("monthlyStep", jobRepository)
             .chunk<ProductMetrics, MvProductRankMonthly>(10, transactionManager)
-            .reader(monthlyProductReader())
+            .reader(monthlyProductReader)
             .processor(monthlyProcessor())
             .writer(monthlyWriter())
             .build()
     }
 
     @Bean
-    fun monthlyProductReader(): ListItemReader<ProductMetrics> {
-        val today = LocalDate.now()
-        val monthStart = today.withDayOfMonth(1)
+    @StepScope
+    fun monthlyProductReader(
+        @Value("#{jobParameters['aggregationDate']}") aggregationDateParam: String,
+        @Value("#{jobParameters['maxCount']}") maxCount: Long,
+    ): ListItemReader<ProductMetrics> {
+        val aggregationDate = LocalDate.parse(aggregationDateParam)
+        val monthStart = aggregationDate.withDayOfMonth(1)
 
-        val productMetrics = productMetricsRepository.findByMetricDateBetweenOrderByRankAscLimit(monthStart, today, 100)
+        val productMetrics =
+            productMetricsRepository.findByMetricDateBetweenOrderByRankAscLimit(monthStart, aggregationDate, maxCount)
 
         return ListItemReader(productMetrics)
     }

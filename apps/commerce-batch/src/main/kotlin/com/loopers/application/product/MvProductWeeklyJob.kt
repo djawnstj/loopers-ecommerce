@@ -11,8 +11,10 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.core.step.builder.StepBuilder
 import org.springframework.batch.item.ItemProcessor
+import org.springframework.batch.item.ItemReader
 import org.springframework.batch.item.ItemWriter
 import org.springframework.batch.item.support.ListItemReader
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.transaction.PlatformTransactionManager
@@ -27,29 +29,32 @@ class MvProductWeeklyJob(
 ) {
 
     @Bean
-    fun weeklyRankingJob(): Job {
+    fun weeklyRankingJob(weeklyStep: Step): Job {
         return JobBuilder("weeklyRankingJob", jobRepository)
             .incrementer(RunIdIncrementer())
-            .start(weeklyStep())
+            .start(weeklyStep)
             .build()
     }
 
     @Bean
-    fun weeklyStep(): Step {
+    fun weeklyStep(weeklyProductReader: ItemReader<ProductMetrics>): Step {
         return StepBuilder("weeklyStep", jobRepository)
             .chunk<ProductMetrics, MvProductRankWeekly>(10, transactionManager)
-            .reader(weeklyProductReader())
+            .reader(weeklyProductReader)
             .processor(weeklyProcessor())
             .writer(weeklyWriter())
             .build()
     }
 
     @Bean
-    fun weeklyProductReader(): ListItemReader<ProductMetrics> {
-        val today = LocalDate.now()
+    fun weeklyProductReader(
+        @Value("#{jobParameters['aggregationDate']}") aggregationDateParam: String,
+        @Value("#{jobParameters['maxCount']}") maxCount: Long,
+    ): ListItemReader<ProductMetrics> {
+        val today = LocalDate.parse(aggregationDateParam)
         val weekStart = today.minusDays(6)
 
-        val productMetrics = productMetricsRepository.findByMetricDateBetweenOrderByRankAscLimit(weekStart, today, 100)
+        val productMetrics = productMetricsRepository.findByMetricDateBetweenOrderByRankAscLimit(weekStart, today, maxCount)
 
         return ListItemReader(productMetrics)
     }
