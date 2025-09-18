@@ -134,4 +134,22 @@ class TestProductService : ProductService {
     override fun getProductRank(productId: Long, date: LocalDate): Long? {
         return null
     }
+
+    override fun getWeeklyProductRanking(date: LocalDate, page: Int, size: Int): ProductRankings {
+        return ProductRankings(
+            rankings = emptyList(),
+            totalCount = 0,
+            page = page,
+            perPage = size
+        )
+    }
+
+    override fun getMonthlyProductRanking(date: LocalDate, page: Int, size: Int): ProductRankings {
+        return ProductRankings(
+            rankings = emptyList(),
+            totalCount = 0,
+            page = page,
+            perPage = size
+        )
+    }
 }

@@ -7,7 +7,10 @@ import com.loopers.cache.SortedCacheRepository
 import com.loopers.domain.brand.Brand
 import com.loopers.domain.product.Product
 import com.loopers.domain.product.ProductLikeCount
+import com.loopers.domain.product.RankingPeriod
 import com.loopers.domain.product.cache.ProductCacheKey
+import com.loopers.domain.product.mv.MvProductRankWeekly
+import com.loopers.domain.product.mv.MvProductRankMonthly
 import com.loopers.domain.product.vo.ProductStatusType
 import com.loopers.fixture.brand.BrandFixture
 import com.loopers.fixture.product.ProductFixture
@@ -15,6 +18,8 @@ import com.loopers.fixture.product.ProductLikeCountFixture
 import com.loopers.infrastructure.brand.JpaBrandRepository
 import com.loopers.infrastructure.product.JpaProductLikeCountRepository
 import com.loopers.infrastructure.product.JpaProductRepository
+import com.loopers.infrastructure.product.mv.JpaMvProductRankWeeklyRepository
+import com.loopers.infrastructure.product.mv.JpaMvProductRankMonthlyRepository
 import com.loopers.support.IntegrationTestSupport
 import com.loopers.support.error.CoreException
 import com.loopers.support.error.ErrorType
@@ -33,6 +38,8 @@ class ProductFacadeIntegrationTest(
     private val jpaBrandRepository: JpaBrandRepository,
     private val jpaProductLikeCountRepository: JpaProductLikeCountRepository,
     private val sortedCacheRepository: SortedCacheRepository,
+    private val jpaMvProductRankWeeklyRepository: JpaMvProductRankWeeklyRepository,
+    private val jpaMvProductRankMonthlyRepository: JpaMvProductRankMonthlyRepository,
 ) : IntegrationTestSupport() {
 
     @Test
@@ -238,48 +245,145 @@ class ProductFacadeIntegrationTest(
         }
     }
 
-    @Test
-    fun `상품 랭킹을 페이지 단위로 조회할 수 있다`() {
-        // given
-        val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
-        val product1 = jpaProductRepository.saveAndFlush(
-            ProductFixture.create(name = "1등상품", brandId = brand.id),
-        )
-        val product2 = jpaProductRepository.saveAndFlush(
-            ProductFixture.create(name = "2등상품", brandId = brand.id),
-        )
-        val product3 = jpaProductRepository.saveAndFlush(
-            ProductFixture.create(name = "3등상품", brandId = brand.id),
-        )
+    @Nested
+    inner class `기간별 상품 랭킹을 조회할 때` {
 
-        val today = LocalDate.now()
-        val cacheKey = ProductCacheKey.ProductRankingPerDays(today)
-
-        sortedCacheRepository.save(cacheKey, 100.0, product1.id)
-        sortedCacheRepository.save(cacheKey, 90.0, product2.id)
-        sortedCacheRepository.save(cacheKey, 80.0, product3.id)
-
-        val command = GetProductRankingCommand(
-            date = today,
-            pageable = PageRequest.of(0, 2),
-        )
-
-        // when
-        val actual = cut.getProductRanking(command)
-
-        // then
-        assertThat(actual)
-            .extracting(
-                "rankings",
-                "totalCount",
-                "currentPage",
-            ).containsExactly(
-                listOf(
-                    GetProductRankingResult.RankedProduct(productId = 3, productName = "3등상품", brandId = 1, likeCount = 0, rank = 1),
-                    GetProductRankingResult.RankedProduct(productId = 2, productName = "2등상품", brandId = 1, likeCount = 0, rank = 2),
-                ),
-                3L,
-                0,
+        @Test
+        fun `일간 랭킹을 조회할 수 있다`() {
+            // given
+            val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
+            val product1 = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(name = "일간1등상품", brandId = brand.id),
             )
+            val product2 = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(name = "일간2등상품", brandId = brand.id),
+            )
+
+            val today = LocalDate.now()
+            val cacheKey = ProductCacheKey.ProductRankingPerDays(today)
+
+            sortedCacheRepository.save(cacheKey, 100.0, product1.id)
+            sortedCacheRepository.save(cacheKey, 90.0, product2.id)
+
+            val command = GetProductRankingCommand(
+                date = today,
+                pageable = PageRequest.of(0, 10),
+                period = RankingPeriod.DAILY
+            )
+
+            // when
+            val actual = cut.getProductRankings(command)
+
+            // then
+            assertThat(actual)
+                .extracting("rankings", "totalCount")
+                .containsExactly(
+                    listOf(
+                        GetProductRankingResult.RankedProduct(productId = product2.id, productName = "일간2등상품", brandId = brand.id, likeCount = 0, rank = 1),
+                        GetProductRankingResult.RankedProduct(productId = product1.id, productName = "일간1등상품", brandId = brand.id, likeCount = 0, rank = 2),
+                    ),
+                    2L
+                )
+        }
+
+        @Test
+        fun `주간 랭킹을 조회할 수 있다`() {
+            // given
+            val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
+            val product1 = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(name = "주간1등상품", brandId = brand.id),
+            )
+            val product2 = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(name = "주간2등상품", brandId = brand.id),
+            )
+
+            val today = LocalDate.now()
+            jpaMvProductRankWeeklyRepository.saveAllAndFlush(listOf(
+                MvProductRankWeekly(
+                    productId = product1.id,
+                    productName = "주간1등상품",
+                    brandId = brand.id,
+                    likeCount = 0L,
+                    rank = 1L
+                ),
+                MvProductRankWeekly(
+                    productId = product2.id,
+                    productName = "주간2등상품",
+                    brandId = brand.id,
+                    likeCount = 0L,
+                    rank = 2L
+                )
+            ))
+
+            val command = GetProductRankingCommand(
+                date = today,
+                pageable = PageRequest.of(0, 10),
+                period = RankingPeriod.WEEKLY
+            )
+
+            // when
+            val actual = cut.getProductRankings(command)
+
+            // then
+            assertThat(actual)
+                .extracting("rankings", "totalCount")
+                .containsExactly(
+                    listOf(
+                        GetProductRankingResult.RankedProduct(productId = product1.id, productName = "주간1등상품", brandId = brand.id, likeCount = 0L, rank = 2),
+                        GetProductRankingResult.RankedProduct(productId = product2.id, productName = "주간2등상품", brandId = brand.id, likeCount = 0L, rank = 3),
+                    ),
+                    2L
+                )
+        }
+
+        @Test
+        fun `월간 랭킹을 조회할 수 있다`() {
+            // given
+            val brand = jpaBrandRepository.saveAndFlush(BrandFixture.`활성 브랜드`.toEntity())
+            val product1 = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(name = "월간1등상품", brandId = brand.id),
+            )
+            val product2 = jpaProductRepository.saveAndFlush(
+                ProductFixture.create(name = "월간2등상품", brandId = brand.id),
+            )
+
+            val today = LocalDate.now()
+            jpaMvProductRankMonthlyRepository.saveAllAndFlush(listOf(
+                MvProductRankMonthly(
+                    productId = product1.id,
+                    productName = "월간1등상품",
+                    brandId = brand.id,
+                    likeCount = 0L,
+                    rank = 1L
+                ),
+                MvProductRankMonthly(
+                    productId = product2.id,
+                    productName = "월간2등상품",
+                    brandId = brand.id,
+                    likeCount = 0L,
+                    rank = 2L
+                )
+            ))
+
+            val command = GetProductRankingCommand(
+                date = today,
+                pageable = PageRequest.of(0, 10),
+                period = RankingPeriod.MONTHLY
+            )
+
+            // when
+            val actual = cut.getProductRankings(command)
+
+            // then
+            assertThat(actual)
+                .extracting("rankings", "totalCount")
+                .containsExactly(
+                    listOf(
+                        GetProductRankingResult.RankedProduct(productId = product1.id, productName = "월간1등상품", brandId = brand.id, likeCount = 0L, rank = 2),
+                        GetProductRankingResult.RankedProduct(productId = product2.id, productName = "월간2등상품", brandId = brand.id, likeCount = 0L, rank = 3),
+                    ),
+                    2L
+                )
+        }
     }
 }
