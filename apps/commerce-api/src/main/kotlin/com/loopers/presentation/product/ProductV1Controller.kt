@@ -30,7 +30,7 @@ class ProductV1Controller(
 
     @GetMapping("/api/v1/products/rankings")
     fun getProductRanking(request: GetProductRankingRequest): ApiResponse<GetProductRankingResponse> {
-        val result = productFacade.getProductRanking(request.toCommand())
+        val result = productFacade.getProductRankings(request.toCommand())
         return ApiResponse.success(GetProductRankingResponse(result))
     }
 }

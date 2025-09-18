@@ -2,6 +2,8 @@ package com.loopers.domain.product
 
 import com.loopers.cache.SortedCacheRepository
 import com.loopers.domain.product.cache.ProductCacheKeys
+import com.loopers.domain.product.mv.MvProductRankWeeklyRepository
+import com.loopers.domain.product.mv.MvProductRankMonthlyRepository
 import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.vo.LikeCount
@@ -34,7 +36,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val param = GetProductParam(null, null, 0, 10)
 
@@ -51,7 +55,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product1 = ProductFixture.`활성 상품 1`.toEntity()
             val product2 = ProductFixture.`활성 상품 2`.toEntity()
@@ -78,7 +84,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             // DB에 데이터 저장
             val dbProduct = ProductFixture.create(name = "DB상품")
@@ -110,7 +118,9 @@ class ProductServiceImplTest {
             val testCacheRepository = TestCacheRepository()
             val cacheRepository = spyk(testCacheRepository)
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product = ProductFixture.기본.toEntity()
             productRepository.save(product)
@@ -135,7 +145,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -153,7 +165,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val nonExistentId = 999L
 
@@ -178,7 +192,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -211,7 +227,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -231,7 +249,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -255,7 +275,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -285,7 +307,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -316,7 +340,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val param = DeductProductItemsQuantityParam(
                 items = listOf(
@@ -341,7 +367,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -378,7 +406,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             // when then
             assertThatThrownBy {
@@ -394,7 +424,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             val savedProduct = productRepository.save(product)
@@ -416,7 +448,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             // when then
             assertThatThrownBy {
@@ -432,7 +466,9 @@ class ProductServiceImplTest {
             val productRepository = TestProductRepository()
             val cacheRepository = TestCacheRepository()
             val sortedCacheRepository = mockk<SortedCacheRepository>()
-            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository)
+            val mvProductRankWeeklyRepository = mockk<MvProductRankWeeklyRepository>()
+            val mvProductRankMonthlyRepository = mockk<MvProductRankMonthlyRepository>()
+            val cut = ProductServiceImpl(productRepository, cacheRepository, sortedCacheRepository, mvProductRankWeeklyRepository, mvProductRankMonthlyRepository)
 
             val product = ProductFixture.`활성 상품 1`.toEntity()
             product.increaseLikeCount()

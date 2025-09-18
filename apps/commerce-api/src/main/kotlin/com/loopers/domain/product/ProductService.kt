@@ -6,6 +6,8 @@ import com.loopers.cache.findAll
 import com.loopers.domain.brand.Brand
 import com.loopers.domain.product.cache.ProductCacheKey
 import com.loopers.domain.product.cache.ProductCacheKeys
+import com.loopers.domain.product.mv.MvProductRankMonthlyRepository
+import com.loopers.domain.product.mv.MvProductRankWeeklyRepository
 import com.loopers.domain.product.params.DeductProductItemsQuantityParam
 import com.loopers.domain.product.params.GetProductParam
 import com.loopers.domain.product.params.GetProductRankingParam
@@ -18,12 +20,15 @@ import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.ZoneId
 
 interface ProductService {
     fun getProducts(param: GetProductParam): List<Product>
     fun getActiveProductInfo(id: Long): Product
     fun findAllByIds(ids: List<Long>): List<Product>
     fun getProductRanking(param: GetProductRankingParam): ProductRankings
+    fun getWeeklyProductRanking(date: LocalDate, page: Int, size: Int): ProductRankings
+    fun getMonthlyProductRanking(date: LocalDate, page: Int, size: Int): ProductRankings
     fun getProductRank(productId: Long, date: LocalDate): Long?
     fun aggregateProductDetail(productDetail: Product, brandDetail: Brand): ProductDetailView
     fun getProductItemsDetailWithLock(productItemIds: List<Long>): ProductItems
@@ -38,6 +43,8 @@ class ProductServiceImpl(
     private val productRepository: ProductRepository,
     private val cacheRepository: CacheRepository,
     private val sortedCacheRepository: SortedCacheRepository,
+    private val mvProductRankWeeklyRepository: MvProductRankWeeklyRepository,
+    private val mvProductRankMonthlyRepository: MvProductRankMonthlyRepository,
 ) : ProductService {
     override fun getProducts(param: GetProductParam): List<Product> {
         val getProductsCacheKey = ProductCacheKeys.GetProducts(param)
@@ -66,21 +73,21 @@ class ProductServiceImpl(
         val cacheKey = ProductCacheKey.ProductRankingPerDays(param.date)
         val startIndex = param.page * param.perPage
         val endIndex = startIndex + param.perPage - 1
-        
+
         val rankings = sortedCacheRepository.findRangeByIndex(
             cacheKey,
             startIndex.toLong(),
             endIndex.toLong(),
-            Long::class
+            Long::class,
         )
-        
+
         val totalCount = getTotalRankingCount(param.date)
-        
+
         return ProductRankings(
             rankings = rankings.map { ProductRankings.ProductRanking(it.value, it.rank) },
             totalCount = totalCount,
             page = param.page,
-            perPage = param.perPage
+            perPage = param.perPage,
         )
     }
 
@@ -161,6 +168,46 @@ class ProductServiceImpl(
     fun recoverDecreaseProductLikeCount(ex: Exception, id: Long) {
         // 실패 처리(ex, id)
         throw CoreException(ErrorType.FAILED_UPDATE_PRODUCT_LIKE_COUNT, "식별자 $id 에 해당하는 상품 좋아요 수 감소에 실패했습니다.")
+    }
+
+    override fun getWeeklyProductRanking(date: LocalDate, page: Int, size: Int): ProductRankings {
+        val startDateTime = date.atStartOfDay(ZoneId.systemDefault())
+        val endDateTime = date.plusDays(1).atStartOfDay(ZoneId.systemDefault())
+
+        val weeklyRanks = mvProductRankWeeklyRepository.findByCreatedAtBetween(
+            startDateTime, endDateTime, org.springframework.data.domain.PageRequest.of(page, size),
+        )
+
+        val rankings = weeklyRanks.content.map {
+            ProductRankings.ProductRanking(it.productId, it.rank)
+        }
+
+        return ProductRankings(
+            rankings = rankings,
+            totalCount = weeklyRanks.totalElements,
+            page = page,
+            perPage = size,
+        )
+    }
+
+    override fun getMonthlyProductRanking(date: LocalDate, page: Int, size: Int): ProductRankings {
+        val startDateTime = date.atStartOfDay(ZoneId.systemDefault())
+        val endDateTime = date.plusDays(1).atStartOfDay(ZoneId.systemDefault())
+
+        val monthlyRanks = mvProductRankMonthlyRepository.findByCreatedAtBetween(
+            startDateTime, endDateTime, org.springframework.data.domain.PageRequest.of(page, size),
+        )
+
+        val rankings = monthlyRanks.content.map {
+            ProductRankings.ProductRanking(it.productId, it.rank)
+        }
+
+        return ProductRankings(
+            rankings = rankings,
+            totalCount = monthlyRanks.totalElements,
+            page = page,
+            perPage = size,
+        )
     }
 
     private fun getTotalRankingCount(date: LocalDate): Long {
