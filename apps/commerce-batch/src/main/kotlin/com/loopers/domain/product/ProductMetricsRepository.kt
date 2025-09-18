@@ -6,6 +6,6 @@ interface ProductMetricsRepository {
     fun findByMetricDateBetweenOrderByRankAscLimit(
         startDate: LocalDate,
         endDate: LocalDate,
-        limit: Int
+        limit: Long
     ): List<ProductMetrics>
 }
